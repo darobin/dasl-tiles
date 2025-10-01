@@ -6,6 +6,7 @@
   "author": "Robin Berjon <robin@berjon.com>",
   "license": "Apache-2.0",
   "scripts": {
+    "release": "release-it",
     "test": "mocha"
   },
   "bin": {},
