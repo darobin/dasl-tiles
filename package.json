@@ -5,7 +5,9 @@
   "description": "All-purpose web tiles library",
   "author": "Robin Berjon <robin@berjon.com>",
   "license": "Apache-2.0",
-  "scripts": {},
+  "scripts": {
+    "test": "mocha"
+  },
   "bin": {},
   "repository": {
     "type": "git",
@@ -26,9 +28,11 @@
     "rules": {}
   },
   "devDependencies": {
-    "eslint": "^8.26.0"
+    "eslint": "^8.26.0",
+    "mocha": "^11.7.3"
   },
   "dependencies": {
+    "@atcute/car": "^3.1.1",
     "@atcute/cbor": "^2.2.5",
     "@atcute/cid": "^2.2.3",
     "@atcute/varint": "^1.0.2",

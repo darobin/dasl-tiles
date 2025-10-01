@@ -2,12 +2,13 @@
 
 # TODO
 
-- [ ] Basic Tiles writer
-  - [ ] create MASL with pointers
-  - [ ] encode whole thing, in good order
+- [x] Basic Tiles writer
+  - [x] create MASL with pointers
+  - [x] encode whole thing, in good order
 - [ ] indexer reader
   - [ ] resolve paths (take query string into account)
   - [ ] resolve with HTTP?
+  - [ ] map CIDs correctly in meta
 - [ ] validator
   - [ ] MASL
   - [ ] whole thing

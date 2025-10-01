@@ -94,9 +94,9 @@ export default class TileWriter {
       const cidString = stringifyCID(cid);
       if (seenCIDs.has(cidString)) continue;
       seenCIDs.add(cidString);
-      const size = new Uint8Array();
+      const size = [];
       encodeVarInt(36 + buf.length, size);
-      await tmp.write(size);
+      await tmp.write(new Uint8Array(size));
       await tmp.write(cid.bytes);
       await tmp.write(buf);
     }
@@ -104,11 +104,10 @@ export default class TileWriter {
     const outh = await open(out, 'w');
     this.#masl.version = 1;
     this.#masl.roots = [];
-    console.warn(this.#masl);
     const meta = encodeDRISL(this.#masl);
-    const size = new Uint8Array();
+    const size = [];
     encodeVarInt(meta.length, size);
-    await outh.write(size);
+    await outh.write(new Uint8Array(size));
     await outh.write(meta);
     const tmpRead = await open(tmpPath);
     const w = outh.createWriteStream();
