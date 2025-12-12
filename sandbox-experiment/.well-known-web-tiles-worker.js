@@ -22,7 +22,7 @@ full tile or its card rendering), the following steps are expected:
   `data` with whatever needed payload.
 - The shuttle responds with `action: tiles-worker-response` that also contains
   `data` (if successful) or `error` (a string, if not).
-- Occasionally, an `action: warn` message is sent, with an attached `msg` array
+- Occasionally, an `action: tiles-worker-warn` message is sent, with an attached `msg` array
   of strings and worker `id`. This is so the container can warn, for debugging
   purposes.
 
@@ -78,8 +78,8 @@ self.addEventListener('message', async (ev) => {
   if (action === RCV_LOAD) {
     id = ev.data.id;
     resolveReadyToLoad();
-    ev.source.postMessage({ action: SND_READY });
     shuttle = ev.source;
+    ev.source.postMessage({ action: SND_READY, id });
   }
   else if (action === RCV_RESPONSE) {
     const { data, $id, error } = ev.data;

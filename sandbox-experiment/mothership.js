@@ -30,6 +30,82 @@ The tile-loading architecture has three levels that all communicate together:
 
 */
 
+// WHAT WE'RE DOING HERE
+// Note: this is experimental and only an approximation of how we want the final
+// product to work.
+// But the idea is to get this working bottom up: we get the worker to DTRT,
+// then the shuttle, and then the mothership. If this experiment can run
+// correctly, then we can start having it load real tiles.
+// Before trying real tiles we should make attempts to break containment.
+
+const WORKER_PFX = 'tiles-worker-';
+const SND_WORKER_LOAD = `${WORKER_PFX}load`;          // tell worker to roll
+const RCV_WORKER_READY = `${WORKER_PFX}ready`;        // worker ready
+const RCV_WORKER_REQUEST = `${WORKER_PFX}request`;    // worker requested something
+const SND_WORKER_RESPONSE = `${WORKER_PFX}response`;  // respond to a worker
+const WORKER_WARNING = `${WORKER_PFX}warn`;           // worker warngs
+
+const id2shuttle = new Map();
+function sendToWorker (id, action, data) {
+  const ifr = id2shuttle.get(id);
+  if (!ifr) return console.error(`No shuttle for ID ${id}`);
+  ifr.contentWindow.postMessage({ action, data }, '*');
+}
+window.addEventListener('message', async (ev) => {
+  const { action } = ev.data || {};
+  if (action === WORKER_WARNING) {
+    const { msg, id } = ev.data;
+    console.warn(`[W:${id}]`, ...msg);
+  }
+  else if (action === RCV_WORKER_READY) {
+    const { id } = ev.data;
+    console.info(`[W:${id}] ready!`);
+  }
+  else if (action === RCV_WORKER_REQUEST) {
+    const { type, $id } = ev.data;
+    if (type === 'resolve-path') {
+      const { path, id } = ev.data.data;
+      // XXX
+      // - always respond with $id as that's the *request* ID (CHANGE NAME, also data -> params)
+      // - if path = / send back an index that loads a CSS
+      // - if path = /style.css send back CSS using the ID as the colour
+      // - anything else error
+      // - response has { $id, data: { status, headers, body } } where body should be UInt8Array
+    }
+  }
+});
+
+
+// STEPS
+// ✅ 1. create a bunch of iframe shuttles
+// ✅ 2. wait for load of iframe
+// ✅ 3. send shuttle for each iframe a `action: tiles-worker-load` with unique ID
+// ✅ 4. wait for `action: tiles-worker-ready` (optional, mostly ignore it)
+// ✅ 5. btw whenever we get a tiles-worker-warn message, we should warn.
+// 6. when we get `action: tiles-worker-request` messages, with resolve-path
+//    then respond appropriately. Here we test with colours.
+// A. try in multiple browsers
+
+[
+  'oklch(69.3% 0.151 180)',
+  'oklch(79.3% 0.136 270)',
+  'oklch(54.3% 0.091 270)',
+  'oklch(74.3% 0.143 0.31)',
+  'oklch(89.3% 0.121 90.3)',
+].forEach(c => {
+    const ifr = document.createElement('iframe');
+    ifr.setAttribute('width', '300');
+    ifr.setAttribute('height', '300');
+    ifr.setAttribute('data-colour', c);
+    ifr.setAttribute('sandbox', 'allow-scripts');
+    document.body.appendChild(ifr);
+    id2shuttle.add(c, ifr);
+    ifr.onload = () => sendToWorker(SND_WORKER_LOAD, { id: c });
+    ifr.setAttribute('src', './.well-known/web-tiles/index.html');
+  }
+);
+
+
 
 
 // THIS SHOULD BE HERE (but of course listening to the right source, not the
@@ -54,46 +130,16 @@ The tile-loading architecture has three levels that all communicate together:
 // };
 
 
-
-
-// EXPERIMENT
-// """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-// - next, have each inner set up a SW
-// - the SW gets the repaint message and configures itself for that colour
-//   note that the configuration needs to be singleton so we can test isolation
-// - then an iframe is created inside, and / gets loaded
-// - the SW responds with an index.html of the right colour
-// - try in multiple browsers
-
-
-const colours = [
-  'oklch(69.3% 0.151 180)',
-  'oklch(79.3% 0.136 270)',
-  'oklch(54.3% 0.091 270)',
-  'oklch(74.3% 0.143 0.31)',
-  'oklch(89.3% 0.121 90.3)',
-];
-
-colours.forEach(c => {
-  const ifr = document.createElement('iframe');
-  ifr.setAttribute('width', '300');
-  ifr.setAttribute('height', '300');
-  ifr.setAttribute('data-colour', c);
-  ifr.setAttribute('sandbox', 'allow-scripts');
-  document.body.appendChild(ifr);
-  ifr.setAttribute('src', './.well-known/web-tiles/index.html');
-});
-
-setTimeout(
-  () => {
-    [...document.querySelectorAll('iframe')].forEach(ifr => {
-      const colour = ifr.getAttribute('data-colour');
-      console.warn(`Posting ${colour}`);
-      ifr.contentWindow.postMessage({
-        action: 'repaint',
-        colour,
-      }, '*');
-    });
-  },
-  500
-);
+// setTimeout(
+//   () => {
+//     [...document.querySelectorAll('iframe')].forEach(ifr => {
+//       const colour = ifr.getAttribute('data-colour');
+//       console.warn(`Posting ${colour}`);
+      // ifr.contentWindow.postMessage({
+      //   action: 'repaint',
+      //   colour,
+      // }, '*');
+//     });
+//   },
+//   500
+// );
