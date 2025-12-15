@@ -37,6 +37,8 @@
     "@atcute/cbor": "^2.2.5",
     "@atcute/cid": "^2.2.3",
     "@atcute/varint": "^1.0.2",
+    "express": "^5.2.1",
+    "nanoid": "^5.1.6",
     "tmp-promise": "^3.0.3"
   }
 }
