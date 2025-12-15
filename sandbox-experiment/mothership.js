@@ -96,17 +96,6 @@ window.addEventListener('message', async (ev) => {
   }
 });
 
-
-// STEPS
-// ✅ 1. create a bunch of iframe shuttles
-// ✅ 2. wait for load of iframe
-// ✅ 3. send shuttle for each iframe a `action: tiles-worker-load` with unique ID
-// ✅ 4. wait for `action: tiles-worker-ready` (optional, mostly ignore it)
-// ✅ 5. btw whenever we get a tiles-worker-warn message, we should warn.
-// ✅ 6. when we get `action: tiles-worker-request` messages, with resolve-path
-//    then respond appropriately. Here we test with colours.
-// A. try in multiple browsers
-
 [
   'oklch(69.3% 0.151 180)',
   // 'oklch(79.3% 0.136 270)',

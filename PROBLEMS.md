@@ -9,8 +9,9 @@ FAIL: Shuttle can't load SW because it has a different origin.
 
 WAIT:
 - This is failing even without the sandboxing…
-  - try flattening the files (this works but we changed a lot of stuff)
-  - try loading the worker in shuttle init
+  - ✅ try flattening the files (this works but we changed a lot of stuff)
+  - ✅ try loading the worker in shuttle init
+  - try reintroducing sandboxing
   - try unflattening the files
 
 ## Approach 002
