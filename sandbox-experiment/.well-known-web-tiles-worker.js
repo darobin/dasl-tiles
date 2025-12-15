@@ -19,16 +19,15 @@ full tile or its card rendering), the following steps are expected:
 - It responds with `action: tiles-worker-ready`.
 - It can then communicate to the shuttle by messaging it with
   `action: tiles-worker-request`, with associated `type` for the request type and
-  `data` with whatever needed payload.
+  `payload` with whatever needed payload.
 - The shuttle responds with `action: tiles-worker-response` that also contains
-  `data` (if successful) or `error` (a string, if not).
+  `payload` (if successful) or `error` (a string, if not).
 - Occasionally, an `action: tiles-worker-warn` message is sent, with an attached `msg` array
   of strings and worker `id`. This is so the container can warn, for debugging
   purposes.
 
 There is only one request type at this point, the type of which is `resolve-path`
-and data for which contains the unique `id` for this worker and the `path` being
-resolved (which may include a query string).
+and data for which is the `path` being resolved (which may include a query string).
 
 It's worth noting that there are two paths that the SW will treat as passthrough:
 
@@ -60,14 +59,14 @@ self.skipWaiting();
 // --- Communicating with the shuttle
 const requestMap = new Map();
 let currentRequest = 0;
-async function request (type, data) {
+async function request (type, payload) {
   currentRequest++;
   warn(`[SW] current request ${currentRequest}`);
   const p = new Promise((resolve, reject) => {
     requestMap.set(currentRequest, { resolve, reject });
   });
   warn(`[SW] promise ready`, p);
-  shuttle.postMessage({ action: SND_REQUEST, type, data, $id: currentRequest });
+  shuttle.postMessage({ action: SND_REQUEST, id, type, payload: { requestId: currentRequest, ...payload } });
   warn(`[SW] posted to source…`);
   return p;
 }
@@ -82,17 +81,18 @@ self.addEventListener('message', async (ev) => {
     ev.source.postMessage({ action: SND_READY, id });
   }
   else if (action === RCV_RESPONSE) {
-    const { data, $id, error } = ev.data;
-    warn(`[SW] WORKER GOT RESPONSE ${$id}`);
-    if (!requestMap.has($id)) return console.error(`No response ID for "${$id}".`);
-    warn(`[SW] - had response ID`, requestMap.get($id)?.resolve?.toString());
-    const { resolve, reject } = requestMap.get($id);
+    const { payload, error } = ev.data;
+    const { requestId } = payload;
+    warn(`[SW] WORKER GOT RESPONSE ${requestId}`);
+    if (!requestMap.has(requestId)) return console.error(`No response ID for "${requestId}".`);
+    warn(`[SW] - had response ID`, requestMap.get(requestId)?.resolve?.toString());
+    const { resolve, reject } = requestMap.get(requestId);
     warn(`[SW] - have functions, will delete`)
-    requestMap.delete($id);
+    requestMap.delete(requestId);
     warn(`[SW] - error? ${error}`);
     if (error) return reject(error);
-    warn(`[SW] - resolving`);
-    resolve(data);
+    warn(`[SW] - resolving`, payload); // XXX I think this nests response
+    resolve(payload.response);
   }
 });
 
@@ -116,7 +116,7 @@ self.addEventListener('fetch', async (ev) => {
   ev.respondWith(promise);
   warn(`making request`);
   try {
-    const r = await request('resolve-path', { id, path: url.pathname }); // XXX this may be a nested await, delete this comment if it works
+    const r = await request('resolve-path', { path: url.pathname }); // XXX this may be a nested await, delete this comment if it works
     warn(`got r `, r);
     // warn(`• fetch ${res.src.$link} got ${r.status}`)
     resolve(new Response(bodify(r.body), response(r.status, r.headers)));
