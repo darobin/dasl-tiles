@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>outer sandboxed</title>
+</head>
+<body>
+  <p id="el">kitsune</p>
+  <iframe src="unsandboxed.html" frameborder="0"></iframe>
+  <iframe src="sandboxed.html" frameborder="0" sandbox="allow-scripts"></iframe>
+  <!--
+    We try the below by adding the whole sandboxing dynamically.
+    A second test would be to already have a sandbox but that includes allow-same-origin,
+    and then remove it.
+  -->
+  <iframe src="dynamically-sandboxed.html" frameborder="0" id="dyn"></iframe>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>dynamically sandboxed</title>
+</head>
+<body>
+  <pre>waiting…</pre>
+  <script src="shared.js"></script>
+  <script>
+    const before = checkAccess();
+    const ifr = window.parent.document.querySelector('#dyn');
+    ifr.setAttribute('sandbox', 'allow-scripts');
+    // XXX check how it applies to sub-iframes
+    setTimeout(
+      () => {
+        const after = checkAccess();
+        if (before === 'allowed' && after === 'blocked') {
+          document.body.style.background = 'green';
+          pre.textContent = `Success!`;
+        }
+        else {
+          document.body.style.background = 'red';
+          pre.textContent = `Fail: ${before} -> ${after}`;
+        }
+      },
+      100
+    );
+  </script>
+</body>
+</html>

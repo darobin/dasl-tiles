@@ -43,7 +43,7 @@ window.addEventListener('message', async (ev) => {
   const { action, id } = ev.data;
   if (action?.startsWith(PFX)) {
     if (action === RCV_LOAD) {
-      await loadWorker();
+      await loadWorker(ev.data.payload.workerSource);
       window.parent.postMessage({ id, action: SND_READY }, '*');
     }
   }
@@ -58,7 +58,7 @@ navigator.serviceWorker.onmessage = (ev) => {
 }
 
 // Let's goooo
-async function loadWorker () {
+async function loadWorker (workerSource) {
   // social justice worker
   let curSWReg;
   try {
@@ -69,7 +69,9 @@ async function loadWorker () {
   }
   if (!curSWReg) {
     // curSWReg = await navigator.serviceWorker.register('../../.well-known-web-tiles-worker.js', { scope: '/' });
-    curSWReg = await navigator.serviceWorker.register('.well-known-web-tiles-worker.js', { scope: '/' });
+    // curSWReg = await navigator.serviceWorker.register('.well-known-web-tiles-worker.js', { scope: '/' });
+    const url = window.URL.createObjectURL(new Blob([workerSource], { type: 'application/javascript' }));
+    curSWReg = await navigator.serviceWorker.register(url, { scope: '/' });
     await navigator.serviceWorker.ready;
   }
   navigator.serviceWorker.onmessage

@@ -63,7 +63,10 @@ window.addEventListener('message', async (ev) => {
   else if (action === RCV_SHUTTLE_READY) {
     const { id } = ev.data;
     console.info(`[W:${id}] shuttle ready!`);
-    sendToShuttle(id, SND_WORKER_LOAD, { id });
+    const r = await fetch('.well-known-web-tiles-worker.js');
+    if (!r.ok) throw new Error(`Failed to load worker source: ${r.status} ${r.statusText}`);
+    const workerSource = await r.text();
+    sendToShuttle(id, SND_WORKER_LOAD, { id, workerSource });
   }
   else if (action === RCV_WORKER_READY) {
     const { id } = ev.data;
