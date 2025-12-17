@@ -1,26 +1,18 @@
 
+# Plan
 
-# TODO
+## Loading
+- Finish the server, make this safely loadable
+- Deploy to webtil.es
+- Make loaders for:
+  - CAR
+  - WebXDC
+  - AT
 
-- [x] Basic Tiles writer
-  - [x] create MASL with pointers
-  - [x] encode whole thing, in good order
-- [x] indexer reader
-  - [x] resolve paths (take query string into account)
-  - [ ] resolve with HTTP?
-  - [x] map CIDs correctly in meta
-- [ ] validator
-  - [ ] MASL
-  - [ ] whole thing
-- [ ] viewer
-  - [ ] load from .tile
-  - [ ] load from at://
-  - [ ] main window showing list of previously loaded
-- [ ] AT indexer
-  - [ ] listen to relay (make this a generic indexer)
-  - [ ] plug into Pouch
-  - [ ] save everything in the right namespace
-  - [ ] index wishes
-  - [ ] expose API (generic Mango so long as you hit index?)
-- [ ] Wishes
-  - [ ] Call other wishes
+## Execution Contexts
+- Wishes
+  - Indexing them
+  - Calling one another
+- WebXDC
+- Telepath/AI
+- Web3/Dapp/Radicle Launcher

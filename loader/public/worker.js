@@ -29,15 +29,9 @@ full tile or its card rendering), the following steps are expected:
 There is only one request type at this point, the type of which is `resolve-path`
 and data for which is the `path` being resolved (which may include a query string).
 
-It's worth noting that there are two paths that the SW will treat as passthrough:
-
-- Anything starting with `/.well-known/web-tiles/`. This is the path that we load
-  all support content from (including the index.html that loads us).
-- Exactly `/.well-known-web-tiles-worker.js`. This does violence to documented best
-  practices but such is life. This is meant to be the path to this worker. It
-  would be better to use /.well-known/web-tiles/worker.js, but in turn that requires
-  sending a `service-worker-allowed: /` header and that can be tricky in some
-  environments. So instead we load the worker from the root.
+It's worth noting that anything starting with `/.well-known/web-tiles/` the SW
+will treat as passthrough. This is the path that we load all support content from
+(including the index.html that loads us).
 */
 
 
@@ -102,10 +96,8 @@ self.addEventListener('fetch', async (ev) => {
   const url = new URL(ev.request.url);
   // IMPORTANT
   // We have to let this through since we do need to load the loader. But it means that tiles
-  // can themselves load anything in loader space. We should add further protection later based
-  // on fetch context or some such.
-  warn(`checking we're not self loading "${/^\/\.well-known\/web-tiles\//.test(url.pathname)}"`);
-  if (/^(\/\.well-known\/web-tiles\/|\/\.well-known-web-tiles-worker\.js)/.test(url.pathname)) return;
+  // can themselves load anything in loader space.
+  if (/^\/\.well-known\/web-tiles\//.test(url.pathname)) return;
   warn('waiting to be ready to load…');
   await readyToLoad;
   warn(`ready — has id? ${id}`);
