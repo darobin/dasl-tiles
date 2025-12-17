@@ -10,11 +10,11 @@ const rel = makeRel(import.meta.url);
 // created. Lowercase, no leading dot.
 export function createTileLoadingRouter (baseHost) {
   const router = express.Router();
-  baseHost = baseHost.toLowerCase().replace(/^./, '');
+  baseHost = baseHost.toLowerCase().replace(/^\./, '');
   router.use((req, res, next) => {
     if (req.hostname === `load.${baseHost}`) {
       const host = `${nanoid()}.${baseHost}`;
-      res.redirect(`${req.protocol}://${host}${req.originalUrl || '/'}`);
+      res.redirect(303, `${req.protocol}://${host}${req.originalUrl || '/'}`);
       return;
     }
     next();
