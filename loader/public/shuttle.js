@@ -40,7 +40,7 @@ window.addEventListener('message', async (ev) => {
   const { action, id } = ev.data;
   if (action?.startsWith(PFX)) {
     if (action === RCV_LOAD) {
-      await loadWorker(ev.data.payload.workerSource);
+      await loadWorker();
       window.parent.postMessage({ id, action: SND_READY }, '*');
     }
   }

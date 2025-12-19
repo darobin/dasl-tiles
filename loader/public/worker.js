@@ -110,6 +110,8 @@ self.addEventListener('fetch', async (ev) => {
   try {
     const r = await request('resolve-path', { path: url.pathname }); // XXX this may be a nested await, delete this comment if it works
     warn(`got r `, r);
+    warn(`res`, response(r.status, r.headers));
+    warn(`bod`, bodify(r.body));
     // warn(`• fetch ${res.src.$link} got ${r.status}`)
     resolve(new Response(bodify(r.body), response(r.status, r.headers)));
   }

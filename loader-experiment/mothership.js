@@ -63,10 +63,7 @@ window.addEventListener('message', async (ev) => {
   else if (action === RCV_SHUTTLE_READY) {
     const { id } = ev.data;
     console.info(`[W:${id}] shuttle ready!`);
-    const r = await fetch('.well-known-web-tiles-worker.js');
-    if (!r.ok) throw new Error(`Failed to load worker source: ${r.status} ${r.statusText}`);
-    const workerSource = await r.text();
-    sendToShuttle(id, SND_WORKER_LOAD, { id, workerSource });
+    sendToShuttle(id, SND_WORKER_LOAD, { id });
   }
   else if (action === RCV_WORKER_READY) {
     const { id } = ev.data;
@@ -80,7 +77,7 @@ window.addEventListener('message', async (ev) => {
       let headers = {};
       let body;
       // if (path === '/') {
-      if (path === '/fake.html') {
+      if (path === '/') {
         headers['content-type'] = 'text/html';
         body = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Tile!</title>
                 <link rel="stylesheet" href="/style.css"></head><body><p>hi!</p></body></html>`;
@@ -101,10 +98,10 @@ window.addEventListener('message', async (ev) => {
 
 [
   'oklch(69.3% 0.151 180)',
-  // 'oklch(79.3% 0.136 270)',
-  // 'oklch(54.3% 0.091 270)',
-  // 'oklch(74.3% 0.143 0.31)',
-  // 'oklch(89.3% 0.121 90.3)',
+  'oklch(79.3% 0.136 270)',
+  'oklch(54.3% 0.091 270)',
+  'oklch(74.3% 0.143 0.31)',
+  'oklch(89.3% 0.121 90.3)',
 ].forEach(c => {
     const ifr = document.createElement('iframe');
     ifr.setAttribute('width', '300');
@@ -114,7 +111,7 @@ window.addEventListener('message', async (ev) => {
     document.body.appendChild(ifr);
     id2shuttle.set(c, ifr);
     ifr.onload = () => sendToShuttle(c, SND_SHUTTLE_LOAD, { id: c });
-    // ifr.setAttribute('src', './.well-known/web-tiles/index.html');
-    ifr.setAttribute('src', 'loader.html');
+    ifr.setAttribute('src', 'https://load.webtiles.bast/.well-known/web-tiles/');
+    // ifr.setAttribute('src', 'loader.html');
   }
 );

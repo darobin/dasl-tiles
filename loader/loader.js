@@ -25,8 +25,8 @@ export function createTileLoadingRouter (baseHost) {
         'service-worker-allowed': '/',
         'origin-agent-cluster': '?1',
         'referrer-policy': 'no-referrer',
-        'permissions-policy': 'interest-cohort=()',
-        'cross-origin-embedder-policy': 'require-corp',
+        'permissions-policy': 'interest-cohort=(), browsing-topics=()',
+        // 'cross-origin-embedder-policy': 'require-corp',
         'cross-origin-resource-policy': 'cross-origin',
         'cross-origin-opener-policy': 'same-origin',
         'x-content-type-options': 'nosniff',
@@ -41,7 +41,9 @@ export function createTileLoadingRouter (baseHost) {
           `object-src 'none'`,
           `base-uri 'none'`,
           `sandbox allow-downloads allow-forms allow-modals allow-same-origin allow-scripts allow-top-navigation-by-user-activation`,
-        ].join('; ')
+        ].join('; '),
+        'tk': 'N',
+        'x-robots-tag': "noai, noimageai",
       });
     },
   }));
