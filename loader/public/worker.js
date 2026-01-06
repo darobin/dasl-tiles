@@ -85,7 +85,7 @@ self.addEventListener('message', async (ev) => {
     requestMap.delete(requestId);
     warn(`[SW] - error? ${error}`);
     if (error) return reject(error);
-    warn(`[SW] - resolving`, payload); // XXX I think this nests response
+    warn(`[SW] - resolving`, payload);
     resolve(payload.response);
   }
 });

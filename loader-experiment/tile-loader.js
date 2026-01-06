@@ -67,9 +67,79 @@ export class Tile {
     return this.#manifest;
   }
   async resolvePath (path) {
-    return this.#pathLoader.resolvePath(path);
+    const u = new URL(`fake:${path}`);
+    return this.#pathLoader.resolvePath(u.pathname);
+  }
+  async renderCard() {
+    const card = el('div', { style: {
+      border: '1px solid lightgrey',
+      'border-radius': '3px',
+    }});
+    // XXX we always take the first, we could be smarter with sizes
+    if (this.#manifest?.screenshots?.[0]?.src) {
+      const res = await this.resolvePath(this.#manifest.screenshots[0].src);
+      if (res.ok) {
+        console.warn(res);
+        const blob = new Blob([res.body], { type: res.headers?.['content-type'] });
+        const url = URL.createObjectURL(blob);
+        el('div', { style: {
+          'background-image': url,
+          'background-size': 'cover',
+          'background-position': '50%',
+        }}, [], card);
+      }
+    }
+    const title = el('div', { style: {
+      padding: '0.5rem 1rem',
+    }}, [], card);
+    // XXX we always take the first, we could be smarter with sizes
+    if (this.#manifest?.icons?.[0]?.src) {
+      const res = await this.resolvePath(this.#manifest.icons[0].src);
+      if (res.ok) {
+        const blob = new Blob([res.body], { type: res.headers?.['content-type'] });
+        console.warn(blob);
+        const url = URL.createObjectURL(blob);
+        el('img', { src: url, width: '48', height: '48', alt: 'icon', style: { 'padding-right': '0.5rem' } }, [], title);
+      }
+    }
+    el('span', { style: { 'font-weight': 'bold' } }, [this.#manifest.name || 'Untitled Tile'], title);
+    if (this.#manifest.description) {
+      el('p', {}, [this.#manifest.description], card);
+    }
+    return card;
+  }
+  async renderContent () {
+    // XXX render content
   }
 }
+function el (n, attrs, kids, p) {
+  const e = document.createElement(n);
+  Object.entries(attrs || {}).forEach(([k, v]) => {
+    if (v == null) return;
+    if (k === 'style') {
+      Object.entries(v).forEach(([prop, value]) => {
+        const snake = prop
+          .split('-')
+          .map((part, idx) => idx ? part.charAt(0).toUpperCase() + part.slice(1) : part)
+          .join('')
+        ;
+        e.style[snake] = value;
+      });
+      return;
+    }
+    e.setAttribute(k, v);
+  });
+  (kids || []).forEach((n) => {
+    if (typeof n === 'string') e.append(txt(n));
+    else e.append(n);
+  });
+  if (p) p.append(e);
+  return e;
+}
+function txt (str) {
+  return document.createTextNode(str);
+}
+
 
 // ############################################
 // ##########################################
@@ -87,9 +157,68 @@ export class Tile {
 //  - DASL spec
 //  - WAG meeting
 
+// ----- some utilities
+const NOT_FOUND = { ok: false, status: 404, statusText: 'Not found' };
+const maslHeaders = [
+  'content-disposition',
+  'content-encoding',
+  'content-language',
+  'content-security-policy',
+  'content-type',
+  'link',
+  'permissions-policy',
+  'referrer-policy',
+  'service-worker-allowed',
+  'sourcemap',
+  'speculation-rules',
+  'supports-loading-mode',
+  'x-content-type-options',
+];
+function maslResponse (masl, body) {
+  if (!body) return NOT_FOUND;
+  const headers = {};
+  maslHeaders.forEach(k => {
+    if (typeof masl[k] !== 'undefined') headers[k] = masl[k];
+  });
+  if (typeof body === 'string') body = (new TextEncoder()).encode(body);
+  return { ok: true, status: 200, statusText: 'Ok', headers, body };
+}
 
 
-// ----- specific loaders (refactor later)
+// ----- XXX specific loaders (refactor later)
+
+// ### Memory Loader
+// This is mostly for debugging, experimentation.
+// You create a loader that maps IDs to manifest-like structures. Then load(memory://ID)
+// and the values in the manifest provide the content directly.
+export class MemoryTileLoader {
+  #tiles = {};
+  addTile (id, manifest) {
+    this.#tiles[id] = manifest;
+  }
+  async load (url) {
+    const u = new URL(url);
+    if (u.protocol !== 'memory:') return false;
+    const id = u.hostname;
+    if (!this.#tiles[id]) return false; // XXX an error would be better
+    const manifest = this.#tiles[id];
+    const loader = new MemoryPathLoader(manifest);
+    return new Tile(url, manifest, loader);
+  }
+}
+export class MemoryPathLoader {
+  #manifest;
+  constructor (manifest) {
+    this.#manifest = manifest;
+  }
+  async resolvePath (path) {
+    const entry = this.#manifest?.resources?.[path];
+    if (!entry?.src) return NOT_FOUND;
+    return maslResponse(entry, entry.src);
+  }
+}
+
+// ### AT Loader
 export class ATTileLoader {
   async load (url) {
     const u = new URL(url);
@@ -101,7 +230,6 @@ export class ATTileLoader {
     //  - create a Tile with the right manifest, the url, and a way to load a path
   }
 }
-
 export class ATPathLoader {
   #did;
   #manifest;
@@ -118,6 +246,7 @@ export class ATPathLoader {
   }
 }
 
+// ### Base Class for HTTP, file, etc. loaders
 // Here the idea is that you can load from multiple schemes, but you might not
 // want to.
 export class ContentSchemeTileLoader {
@@ -149,6 +278,7 @@ export class ContentSchemeTileLoader {
   // }
 }
 
+// ### WebXDC (DeltaChat) Loader
 export class WebXDCTileLoader extends ContentSchemeTileLoader {
   constructor (schemes) {
     super(schemes);
@@ -161,6 +291,7 @@ export class WebXDCTileLoader extends ContentSchemeTileLoader {
   }
 }
 
+// ### CAR Tiles
 export class CARTileLoader extends ContentSchemeTileLoader {
   constructor (schemes) {
     super(schemes);

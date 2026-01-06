@@ -14,12 +14,17 @@ worker, and triggers the iframe that the worker operates on.
 Other than that, it passes messages between the worker and the mothership.
 */
 
-let worker;  // instance of the worker
+let workerId;   // keep track of the worker id so the mothership knows who we are when we talk
+let mothership; // hold on to the source so we can initiate sending up
+let worker;     // instance of the worker
 const { promise: readyToLoad, resolve: resolveReadyToLoad } = Promise.withResolvers();
 
 const PFX = 'tiles-shuttle-';
-const RCV_LOAD = `${PFX}load`;    // mothership tells us to start loading
-const SND_READY = `${PFX}ready`;  // tell mothership we're loaded and ready
+const RCV_LOAD = `${PFX}load`;            // mothership tells us to start loading
+const SND_READY = `${PFX}ready`;          // tell mothership we're loaded and ready
+const SND_ERROR = `${PFX}error`;          // error to mothership
+const RCV_SET_TITLE = `${PFX}set-title`;  // set the title
+const RCV_SET_ICON = `${PFX}set-icon`;    // set the icon
 
 // XXX TODO
 // - If there's a way to pass references around, get the worker and mothership
@@ -40,8 +45,25 @@ window.addEventListener('message', async (ev) => {
   const { action, id } = ev.data;
   if (action?.startsWith(PFX)) {
     if (action === RCV_LOAD) {
+      workerId = id;
+      mothership = ev.source;
       await loadWorker();
       window.parent.postMessage({ id, action: SND_READY }, '*');
+    }
+    else if (action === RCV_SET_TITLE) {
+      document.title = ev.data.title;
+    }
+    else if (action === RCV_SET_ICON) {
+      const { path } = ev.data;
+      // If the worker is loaded, we just load the icon straight up.
+      // Otherwise we need to request resolving the path from the mothership,
+      // the way that workers do.
+      if (worker) {
+        document.querySelector('link[rel="icon"]')?.setAttribute('href', path);
+      }
+      else {
+        // XXX make request system reusable
+      }
     }
   }
   else {
@@ -66,11 +88,11 @@ async function loadWorker () {
   }
   if (!curSWReg) {
     curSWReg = await navigator.serviceWorker.register('worker.js', { scope: '/' });
-    await navigator.serviceWorker.ready;
   }
-  navigator.serviceWorker.onmessage
+  await navigator.serviceWorker.ready;
+  // navigator.serviceWorker.onmessage
   worker = curSWReg.active;
-  worker.onerror = (ev) => console.error(`SW Error:`, ev); // XXX probably push up
+  worker.onerror = (ev) => error(`Worker error`, ev);
   resolveReadyToLoad();
   renderWorkerFrame();
 }
@@ -83,6 +105,12 @@ function renderWorkerFrame () {
       ifr.setAttribute('frameborder', '0'); // oh hell yeah
       document.body.appendChild(ifr);
     },
-    0
+    5 // setting this to 0 surfaces a race condition… (probably still there)
   );
+}
+
+async function error (...msg) {
+  console.warn(...msg);
+  if (!mothership) return;
+  mothership.postMessage({ action: SND_ERROR, msg, id: workerId });
 }

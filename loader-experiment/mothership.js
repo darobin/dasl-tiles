@@ -1,33 +1,13 @@
 
-/*
-████████╗██╗██╗     ███████╗███████╗
-╚══██╔══╝██║██║     ██╔════╝██╔════╝
-   ██║   ██║██║     █████╗  ███████╗
-   ██║   ██║██║     ██╔══╝  ╚════██║
-   ██║   ██║███████╗███████╗███████║
-   ╚═╝   ╚═╝╚══════╝╚══════╝╚══════╝
-      •--~~~## MOTHERSHIP ##~~~--•
+import { TileLoader, MemoryTileLoader } from './tile-loader.js';
 
-The tile-loading architecture has three levels that all communicate together:
-
-- At the top, the MOTHERSHIP. This has access to things in the real world like
-  fetching from the internet or reading from the file system. It's the interface
-  to tile loading, it gets configured in ways that are appropriate for its
-  context. This is the entry point: you give it a URL and it'll instantiate that
-  tile. To the extent possible, this should contain all the intelligence and all
-  the configurability so that the other components can be deployed in entirely
-  generic ways.
-- The mothership instantiates tiles by creating insulated contexts (a sandboxed
-  iframe, an incognito window…) and loading a SHUTTLE in it. The role of the
-  shuttle is to set up a service worker and an iframe to load the root of the
-  tile into. It only exists because you need something to carry a service worker
-  in. The only other thing that it does is (*drumroll*) shuttle messages back
-  and forth between the worker and the mothership.
-- The WORKER is dispatched on a shuttle to handle resource loading for a tile.
-  Apart from allow-listing some paths for itself and the shuttle, it passes all
-  requests up, which the shuttle then hands over to the mothership.
-*/
-
+// XXX
+// - move most of this to tile-loader
+// - load tile-loader
+// - have it resolve content in memory with the same colour thing
+// - move on to move complex things
+// - refactor the tile-loader to be a proper library
+// - refactor it to split, too
 
 // WHAT WE'RE DOING HERE
 // Note: this is experimental and only an approximation of how we want the final
@@ -38,14 +18,15 @@ The tile-loading architecture has three levels that all communicate together:
 // Before trying real tiles we should make attempts to break containment.
 
 const SHUTTLE_PFX = 'tiles-shuttle-';
-const SND_SHUTTLE_LOAD = `${SHUTTLE_PFX}load`;          // tell worker to roll
-const RCV_SHUTTLE_READY = `${SHUTTLE_PFX}ready`;        // worker ready
+const SND_SHUTTLE_LOAD = `${SHUTTLE_PFX}load`;        // tell worker to roll
+const RCV_SHUTTLE_READY = `${SHUTTLE_PFX}ready`;      // worker ready
 const WORKER_PFX = 'tiles-worker-';
 const SND_WORKER_LOAD = `${WORKER_PFX}load`;          // tell worker to roll
 const RCV_WORKER_READY = `${WORKER_PFX}ready`;        // worker ready
 const RCV_WORKER_REQUEST = `${WORKER_PFX}request`;    // worker requested something
 const SND_WORKER_RESPONSE = `${WORKER_PFX}response`;  // respond to a worker
-const WORKER_WARNING = `${WORKER_PFX}warn`;           // worker warngs
+const WORKER_WARNING = `${WORKER_PFX}warn`;           // worker warnings
+const SHUTTLE_ERROR = `${SHUTTLE_PFX}error`;          // shuttle errors
 
 const id2shuttle = new Map();
 function sendToShuttle (id, action, payload) {
@@ -59,6 +40,10 @@ window.addEventListener('message', async (ev) => {
   if (action === WORKER_WARNING) {
     const { msg, id } = ev.data;
     console.warn(`[W:${id}]`, ...msg);
+  }
+  if (action === SHUTTLE_ERROR) {
+    const { msg, id } = ev.data;
+    console.error(`[S:${id}]`, ...msg);
   }
   else if (action === RCV_SHUTTLE_READY) {
     const { id } = ev.data;
@@ -115,3 +100,41 @@ window.addEventListener('message', async (ev) => {
     // ifr.setAttribute('src', 'loader.html');
   }
 );
+
+// A more real experiment!
+const mem = new MemoryTileLoader();
+mem.addTile('basic', {
+  name: 'Very Basic Tile',
+  description: 'This is a very simple tile that we can load from memory and that has enough content to be worth playing with.',
+  screenshots: [{ src: '/img/shot' }],
+  icons: [{ src: `/img/icon` }],
+  resources: {
+    '/': {},
+    '/img/shot': {
+      src: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600">
+        <rect x="0" y="0" width="100%" height="100%" fill="hotpink"></rect>
+        <circle cx="50%" cy="50%" r="300" fill="lime"></circle>
+      </svg>`,
+      'content-type': 'image/svg',
+    },
+    '/img/icon': {
+      src: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px">
+        <circle cx="50%" cy="50%" r="20" fill="blue"></circle>
+      </svg>`,
+      'content-type': 'image/svg',
+    },
+  },
+});
+
+// XXX - CURRENT STATUS
+// - loading blobs this way doesn't work, I suspect the SVG is unhappy text encoded or something
+//  - try building a blob and URL that works step by step
+// - once that's good, go to tile-loader for next steps.
+
+const tl = new TileLoader();
+tl.addLoader(mem);
+const parent = document.createElement('div');
+parent.style.paddingTop = '50px';
+document.body.append(parent);
+const tile = await tl.loadTile('memory://basic');
+parent.append(await tile.renderCard());

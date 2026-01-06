@@ -6,6 +6,7 @@
   "author": "Robin Berjon <robin@berjon.com>",
   "license": "Apache-2.0",
   "scripts": {
+    "watch": "node --watch loader/server.js webtiles.bast",
     "release": "release-it",
     "test": "mocha"
   },
@@ -32,6 +33,7 @@
   },
   "devDependencies": {
     "eslint": "^8.26.0",
+    "http-server": "^14.1.1",
     "mocha": "^11.7.3"
   },
   "dependencies": {
