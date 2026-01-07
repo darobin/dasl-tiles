@@ -115,13 +115,13 @@ mem.addTile('basic', {
         <rect x="0" y="0" width="100%" height="100%" fill="hotpink"></rect>
         <circle cx="50%" cy="50%" r="300" fill="lime"></circle>
       </svg>`,
-      'content-type': 'image/svg',
+      'content-type': 'image/svg+xml',
     },
     '/img/icon': {
       src: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px">
         <circle cx="50%" cy="50%" r="20" fill="blue"></circle>
       </svg>`,
-      'content-type': 'image/svg',
+      'content-type': 'image/svg+xml',
     },
   },
 });
@@ -135,6 +135,7 @@ const tl = new TileLoader();
 tl.addLoader(mem);
 const parent = document.createElement('div');
 parent.style.paddingTop = '50px';
+parent.style.maxWidth = '570px';
 document.body.append(parent);
 const tile = await tl.loadTile('memory://basic');
 parent.append(await tile.renderCard());

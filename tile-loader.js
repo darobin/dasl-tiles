@@ -83,14 +83,17 @@ export class Tile {
         const blob = new Blob([res.body], { type: res.headers?.['content-type'] });
         const url = URL.createObjectURL(blob);
         el('div', { style: {
-          'background-image': url,
+          'background-image': `url(${url})`,
           'background-size': 'cover',
           'background-position': '50%',
+          'aspect-ratio': '16/9',
         }}, [], card);
       }
     }
     const title = el('div', { style: {
-      padding: '0.5rem 1rem',
+      padding: '0.5rem 1rem 0 1rem',
+      display: 'flex',
+      'align-items': 'center',
     }}, [], card);
     // XXX we always take the first, we could be smarter with sizes
     if (this.#manifest?.icons?.[0]?.src) {
@@ -104,7 +107,7 @@ export class Tile {
     }
     el('span', { style: { 'font-weight': 'bold' } }, [this.#manifest.name || 'Untitled Tile'], title);
     if (this.#manifest.description) {
-      el('p', {}, [this.#manifest.description], card);
+      el('p', { style: { 'margin': '0.5rem 1rem 1rem 1rem' } }, [this.#manifest.description], card);
     }
     return card;
   }
