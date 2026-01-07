@@ -11,10 +11,10 @@
     - ✅ / on load.webtiles redirects to a random subdomain
     - ✅ loading random.webtiles/.wk... is just the right kind of static site with the right content
   - client:
-    - it's just the mothership (with experiment code for now)
-    - shuttle index needs to just have an iframe that takes up all the space
-    - start building real mothership, with initial loader pluging being synthetic content
-    - NOTE THAT mothershipd should load from an http-server thing, not from the
+    - ✅ it's just the mothership (with experiment code for now)
+    - ✅ shuttle index needs to just have an iframe that takes up all the space
+    - ✅ start building real mothership, with initial loader pluging being synthetic content
+    - ✅ NOTE THAT mothershipd should load from an http-server thing, not from the
       loader site. We're still in sandbox experiment (maybe move).
 
 

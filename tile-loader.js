@@ -28,8 +28,73 @@ The tile-loading architecture has three levels that all communicate together:
   requests up, which the shuttle then hands over to the mothership.
 */
 
-export class TileLoader {
+
+const SHUTTLE_PFX = 'tiles-shuttle-';
+const SND_SHUTTLE_LOAD = `${SHUTTLE_PFX}load`;        // tell worker to roll
+const RCV_SHUTTLE_READY = `${SHUTTLE_PFX}ready`;      // worker ready
+const WORKER_PFX = 'tiles-worker-';
+const SND_WORKER_LOAD = `${WORKER_PFX}load`;          // tell worker to roll
+const RCV_WORKER_READY = `${WORKER_PFX}ready`;        // worker ready
+const RCV_WORKER_REQUEST = `${WORKER_PFX}request`;    // worker requested something
+const SND_WORKER_RESPONSE = `${WORKER_PFX}response`;  // respond to a worker
+const WORKER_WARNING = `${WORKER_PFX}warn`;           // worker warnings
+const SHUTTLE_ERROR = `${SHUTTLE_PFX}error`;          // shuttle errors
+
+export class TileMothership {
   #loaders = [];
+  #conf = {};
+  #id2shuttle = new Map();
+  #id2tile = new Map();
+  constructor (conf) {
+    this.#conf = conf;
+  }
+  init () {
+    window.addEventListener('message', async (ev) => {
+      const { action } = ev.data || {};
+      if (action === WORKER_WARNING) {
+        const { msg, id } = ev.data;
+        console.warn(`[W:${id}]`, ...msg);
+      }
+      if (action === SHUTTLE_ERROR) {
+        const { msg, id } = ev.data;
+        console.error(`[S:${id}]`, ...msg);
+      }
+      else if (action === RCV_SHUTTLE_READY) {
+        const { id } = ev.data;
+        console.info(`[W:${id}] shuttle ready!`);
+        this.sendToShuttle(id, SND_WORKER_LOAD, { id });
+      }
+      else if (action === RCV_WORKER_READY) {
+        const { id } = ev.data;
+        console.info(`[W:${id}] worker ready!`);
+      }
+      else if (action === RCV_WORKER_REQUEST) {
+        const { type, id, payload } = ev.data;
+        if (type === 'resolve-path') {
+          const { path, requestId } = payload;
+          const tile = this.#id2tile.get(id);
+          if (!tile) throw new Error(`No tile shuttle with ID ${id}`);
+          const { status, headers, body } = await tile.resolvePath(path);
+          this.sendToShuttle(id, SND_WORKER_RESPONSE, { requestId, response: { status, headers, body } });
+        }
+      }
+    });
+  }
+  sendToShuttle (id, action, payload) {
+    console.warn(`sendToShuttle`, id, action, payload);
+    const ifr = this.#id2shuttle.get(id);
+    if (!ifr) return console.error(`No shuttle for ID ${id}`);
+    ifr.contentWindow.postMessage({ id, action, payload }, '*');
+  }
+  registerShuttleFrame (ifr, tile) {
+    const id = crypto.randomUUID(); // we might want to make that pluggable
+    this.#id2shuttle.set(id, ifr);
+    this.#id2tile.set(id, tile);
+    return id;
+  }
+  startShuttle (id) {
+    this.sendToShuttle(id, SND_SHUTTLE_LOAD, { id });
+  }
   // Adds a loader that will handle matching requests to load a tile.
   // - `loader` is an object that knows how to load a tile for a specific scheme
   //    (and types)
@@ -40,11 +105,14 @@ export class TileLoader {
   removeLoader (loader) {
     this.#loaders = this.#loaders.filter(ldr => ldr !== loader);
   }
+  getLoadSource () {
+    return `https://${this.#conf?.loadDomain || 'load.webtil.es'}/.well-known/web-tiles/`;
+  }
   // Load a tile.
   async loadTile (url) {
     let tile = false;
     for (const ldr of this.#loaders) {
-      tile = await ldr.load(url);
+      tile = await ldr.load(url, this);
       if (tile) break;
     }
     return tile;
@@ -52,10 +120,13 @@ export class TileLoader {
 }
 
 export class Tile {
+  #mothership;
   #url;
   #manifest;
   #pathLoader;
-  constructor (url, manifest, pathLoader) {
+  #shuttleId;
+  constructor (mothership, url, manifest, pathLoader) {
+    this.#mothership = mothership;
     this.#url = url;
     this.#manifest = manifest;
     this.#pathLoader = pathLoader;
@@ -70,16 +141,21 @@ export class Tile {
     const u = new URL(`fake:${path}`);
     return this.#pathLoader.resolvePath(u.pathname);
   }
-  async renderCard() {
+  async renderCard () {
     const card = el('div', { style: {
       border: '1px solid lightgrey',
       'border-radius': '3px',
+      cursor: 'pointer',
     }});
+    card.addEventListener('click', async () => {
+      console.warn(`going to height ${card.offsetHeight}`);
+      const tileRenderer = await this.renderContent(card.offsetHeight);
+      card.replaceWith(tileRenderer);
+    });
     // XXX we always take the first, we could be smarter with sizes
     if (this.#manifest?.screenshots?.[0]?.src) {
       const res = await this.resolvePath(this.#manifest.screenshots[0].src);
       if (res.ok) {
-        console.warn(res);
         const blob = new Blob([res.body], { type: res.headers?.['content-type'] });
         const url = URL.createObjectURL(blob);
         el('div', { style: {
@@ -100,7 +176,6 @@ export class Tile {
       const res = await this.resolvePath(this.#manifest.icons[0].src);
       if (res.ok) {
         const blob = new Blob([res.body], { type: res.headers?.['content-type'] });
-        console.warn(blob);
         const url = URL.createObjectURL(blob);
         el('img', { src: url, width: '48', height: '48', alt: 'icon', style: { 'padding-right': '0.5rem' } }, [], title);
       }
@@ -111,8 +186,19 @@ export class Tile {
     }
     return card;
   }
-  async renderContent () {
-    // XXX render content
+  async renderContent (height = 300) {
+    const ifr = el('iframe', {
+      src: this.#mothership.getLoadSource(),
+      style: {
+        display: 'block',
+        width: '100%',
+        height: `${height}px`,
+        border: 'none',
+      }
+    });
+    this.#shuttleId = this.#mothership.registerShuttleFrame(ifr, this);
+    ifr.addEventListener('load', () => this.#mothership.startShuttle(this.#shuttleId));
+    return ifr;
   }
 }
 function el (n, attrs, kids, p) {
@@ -199,14 +285,14 @@ export class MemoryTileLoader {
   addTile (id, manifest) {
     this.#tiles[id] = manifest;
   }
-  async load (url) {
+  async load (url, mothership) {
     const u = new URL(url);
     if (u.protocol !== 'memory:') return false;
     const id = u.hostname;
     if (!this.#tiles[id]) return false; // XXX an error would be better
     const manifest = this.#tiles[id];
     const loader = new MemoryPathLoader(manifest);
-    return new Tile(url, manifest, loader);
+    return new Tile(mothership, url, manifest, loader);
   }
 }
 export class MemoryPathLoader {
@@ -223,7 +309,7 @@ export class MemoryPathLoader {
 
 // ### AT Loader
 export class ATTileLoader {
-  async load (url) {
+  async load (url, mothership) {
     const u = new URL(url);
     if (u.protocol !== 'at:') return false;
     // XXX
@@ -257,7 +343,7 @@ export class ContentSchemeTileLoader {
   constructor (schemes = ['http', 'file']) {
     this.#schemes = new Set(schemes);
   }
-  async load (url) {
+  async load (url, mothership) {
     const u = new URL(url);
     if (u.protocol === 'https:' || u.protocol === 'http:') {
       if (!this.#schemes.has('http')) return false;
