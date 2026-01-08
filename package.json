@@ -20,6 +20,9 @@
   "exports": {
     "./loading-server": "./loading-server/index.js",
     "./loader": "./loader.js",
+    "./loader/memory": "./loader/memory.js",
+    "./loader/at": "./loader/at.js",
+    "./loader/content-scheme": "./loader/content-scheme.js",
     "./car-reader": "./car-reader.js",
     "./writer": "./writer.js"
   },
