@@ -46,7 +46,8 @@ const RCV_LOAD = `${PFX}load`;          // mothership tells us to start loading
 const SND_READY = `${PFX}ready`;        // tell mothership we're loaded and ready
 const SND_REQUEST = `${PFX}request`;    // request something from mothership
 const RCV_RESPONSE = `${PFX}response`;  // mothership responds to a request
-const SND_WARNING = `${PFX}warn`;       // warn mothership
+const TILES_PFX = 'tiles-';
+const SND_WARNING = `${TILES_PFX}warn`;       // warn mothership
 
 self.skipWaiting();
 
@@ -91,7 +92,6 @@ self.addEventListener('message', async (ev) => {
 });
 
 self.addEventListener('fetch', async (ev) => {
-  warn('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
   warn(`FETCH of "${ev.request.url}"`);
   const url = new URL(ev.request.url);
   // IMPORTANT
@@ -132,6 +132,8 @@ function bodify (body) {
   return Array.isArray(body) ? new Uint8Array(body) : body;
 }
 
+// NOTE: these just get copied around because browsers don't all support import
+// in SW yet.
 async function warn (...msg) {
   console.warn(...msg);
   if (!shuttle) return;

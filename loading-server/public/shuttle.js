@@ -25,6 +25,8 @@ const SND_READY = `${PFX}ready`;          // tell mothership we're loaded and re
 const SND_ERROR = `${PFX}error`;          // error to mothership
 const RCV_SET_TITLE = `${PFX}set-title`;  // set the title
 const RCV_SET_ICON = `${PFX}set-icon`;    // set the icon
+const TILES_PFX = 'tiles-';
+const SND_WARNING = `${TILES_PFX}warn`;       // warn mothership
 
 // XXX TODO
 // - If there's a way to pass references around, get the worker and mothership
@@ -51,10 +53,11 @@ window.addEventListener('message', async (ev) => {
       window.parent.postMessage({ id, action: SND_READY }, '*');
     }
     else if (action === RCV_SET_TITLE) {
-      document.title = ev.data.title;
+      warn(`Title: ${ev.data.payload?.title}`)
+      document.title = ev.data.payload?.title;
     }
     else if (action === RCV_SET_ICON) {
-      const { path } = ev.data;
+      const path = ev.data.payload?.path;
       // If the worker is loaded, we just load the icon straight up.
       // Otherwise we need to request resolving the path from the mothership,
       // the way that workers do.
@@ -113,4 +116,10 @@ async function error (...msg) {
   console.warn(...msg);
   if (!mothership) return;
   mothership.postMessage({ action: SND_ERROR, msg, id: workerId });
+}
+
+async function warn (...msg) {
+  console.warn(...msg);
+  if (!mothership) return;
+  mothership.postMessage({ action: SND_WARNING, msg, id: workerId });
 }
