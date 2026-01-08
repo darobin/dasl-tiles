@@ -17,7 +17,7 @@ export class WebXDCTileLoader extends ContentSchemeTileLoader {
   constructor (schemes) {
     super(schemes);
   }
-  async processContent (zipData, _, url, mothership) {
+  async processContent(zipData, _, url, mothership) {
     const zip = new JSZip();
     try {
       await zip.loadAsync(zipData);
@@ -47,7 +47,79 @@ export class WebXDCTileLoader extends ContentSchemeTileLoader {
         'content-type': mediaType,
       };
     }
+    // Add webxdc.js. NOTE: we need to make this pluggable so that it can actually
+    // do some useful work.
+    manifest.resources['/webxdc.js'] = {
+      src: makeWebXDCAPI(),
+      'content-type': 'application/javascript',
+    };
     const loader = new MemoryPathLoader(manifest);
     return new Tile(mothership, url, manifest, loader);
   }
+}
+
+// This is the resource that implements webxdc.js. (Based on webxdc/hello.)
+// Note that joinRealtimeChannel() is marked as optional, so we skip it.
+// These are mostly stubs, e.g. sendToChat() just dumps to the console,
+// setUpdateListener() does nothing at all.
+function makeWebXDCAPI ({ selfName = 'Dazzling Kitten', selfAddr } = {}) {
+  return [
+    // self-func
+    `window.webxdc = (() => {`,
+
+    // returned object
+    `return {`,
+    // selfies
+    `selfAddr: "${selfAddr || crypto.randomUUID()}",
+    selfName: "${selfName}",`,
+
+    // updates
+    `sendUpdate: (update) => {
+      console.log('sendUpdate', update);
+    },
+    setUpdateListener: () => {
+    },
+    getAllUpdates: () => {
+      console.log("[Webxdc] WARNING: getAllUpdates() is deprecated.");
+      return Promise.resolve([]);
+    },`,
+
+    // sendToChat
+    `sendToChat: async (content) => {
+      if (!content.file && !content.text) {
+        alert("🚨 Error: either file or text need to be set. (or both)");
+        return Promise.reject(
+          "Error from sendToChat: either file or text need to be set",
+        );
+      }
+      console.info('sendToChat', content);
+    },`,
+
+    // importFiles
+    `importFiles: (filters) => {
+      const accept = [
+        ...(filters.extensions || []),
+        ...(filters.mimeTypes || []),
+      ].join(",");
+      const element = document.createElement("input");
+      element.setAttribute('type', 'file');
+      element.setAttribute('accept', accept);
+      if (filters.multiple) element.setAttribute('multiple', 'multiple');
+      const promise = new Promise((resolve) => {
+        element.onchange = () => {
+          const files = Array.from(element.files || []);
+          document.body.removeChild(element);
+          resolve(files);
+        };
+      });
+      element.style.display = "none";
+      document.body.appendChild(element);
+      element.click();
+      return promise;
+    },`,
+    // close object
+    `};`,
+    // close self-func
+    `})();`
+  ].join('\n');
 }

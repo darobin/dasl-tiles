@@ -142,15 +142,14 @@ export class Tile {
     const u = new URL(`fake:${path}`);
     return this.#pathLoader.resolvePath(u.pathname);
   }
-  async renderCard () {
+  async renderCard (options) {
     const card = el('div', { style: {
       border: '1px solid lightgrey',
       'border-radius': '3px',
       cursor: 'pointer',
     }});
     card.addEventListener('click', async () => {
-      console.warn(`going to height ${card.offsetHeight}`);
-      const tileRenderer = await this.renderContent(card.offsetHeight);
+      const tileRenderer = await this.renderContent(options?.contentHeight || card.offsetHeight);
       card.replaceWith(tileRenderer);
     });
     // XXX we always take the first, we could be smarter with sizes
@@ -168,7 +167,7 @@ export class Tile {
       }
     }
     const title = el('div', { style: {
-      padding: '0.5rem 1rem 0 1rem',
+      padding: '0.5rem 1rem',
       display: 'flex',
       'align-items': 'center',
     }}, [], card);
