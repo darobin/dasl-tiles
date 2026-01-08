@@ -11,15 +11,14 @@ export class ContentSchemeTileLoader {
     const u = new URL(url);
     if (u.protocol === 'https:' || u.protocol === 'http:') {
       if (!this.#schemes.has('http')) return false;
-      // XXX
-      //  - get the data
-      //  - give it to processContent
+      const res = await fetch(url);
+      if (!res.ok) return false;
+      return await this.processContent(await res.arrayBuffer(), u.protocol, url, mothership);
     }
     if (u.protocol === 'file:') {
       if (!this.#schemes.has('file')) return false;
       // XXX
       //  - get the data
-      //  - if it's not a zip file, return false
       //  - give it to processContent
     }
   }

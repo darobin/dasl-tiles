@@ -23,6 +23,8 @@
     "./loader/memory": "./loader/memory.js",
     "./loader/at": "./loader/at.js",
     "./loader/content-scheme": "./loader/content-scheme.js",
+    "./loader/car": "./loader/car.js",
+    "./loader/webxdc": "./loader/webxdc.js",
     "./car-reader": "./car-reader.js",
     "./writer": "./writer.js"
   },
@@ -51,7 +53,12 @@
     "@atcute/cid": "^2.2.3",
     "@atcute/varint": "^1.0.2",
     "express": "^5.2.1",
+    "install": "^0.13.0",
+    "jszip": "^3.10.1",
+    "mime": "^4.1.0",
     "nanoid": "^5.1.6",
+    "npm": "^11.7.0",
+    "smol-toml": "^1.6.0",
     "tmp-promise": "^3.0.3"
   }
 }

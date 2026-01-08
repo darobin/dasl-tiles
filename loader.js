@@ -202,31 +202,3 @@ export class Tile {
     return ifr;
   }
 }
-
-// XXX NEXT STEPS
-// - this is a good point to refactor into library+demo
-// x move the experiment entirely into webtil.es
-//  x put a basic build thing there
-//  x npm link
-// x rename loader to loading-server and document
-// x use package.json to expose tile-loader as @dasl/tiles/loader (and car-reader?)
-// - refactor tiles loader into split
-// - do XDC and CAR first
-// - need an AT publisher
-// - need a tilifier given a web page
-
-
-// ############################################
-// ##########################################
-// #### NEXT STEPS ########################
-// ##########################################
-// ############################################
-//
-//  x have the mothership change to being an experiment loading actual tiles
-//  x support renderCard (pluggable too)
-//  - implement the loaders one by one
-//  - try each, stick to browser environments for now (we can add e.g. Tauri later)
-//  - publish to npm with the right metadata
-//  - make a website with demo
-//  - DASL spec
-//  - WAG meeting
