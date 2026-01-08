@@ -2,7 +2,7 @@
 
 import { argv, exit } from 'node:process';
 import express from 'express';
-import { createTileLoadingRouter } from './loader.js';
+import { createTileLoadingRouter } from './index.js';
 
 const baseServer = argv[2];
 const port = argv[3] || 1503;

@@ -10,7 +10,7 @@ This library is a toolbox for tiles.
 ## Writing
 
 ```js
-import TileWrite from '@dasl/tiles/writer.js';
+import TileWrite from '@dasl/tiles/writer';
 
 const tw = new TileWriter({
   name: `My Cat`,
@@ -28,6 +28,8 @@ and the means of creating a stream that reads just that segment of the CAR.
 Note that the path resolution will correctly ignore query strings, hashes, etc.
 
 ```js
+import CarTileReader from '@dasl/tiles/car-reader';
+
 const ctr = new CarTileReader('/path/to/a/car-based.tile');
 await ctr.open();
 const nf = ctr.resolvePath('/not/exists');
@@ -37,3 +39,8 @@ const root = ctr.resolvePath('/');
 sendHeaders(root.headers); // { 'content-type': 'text/html' }
 root.createReadStream().pipe(res); // sends the content
 ```
+
+## Tiles Loading Server
+
+Due to limitations in browser technology, supporting tiles in browsers requires
+a very minimalistic server set up

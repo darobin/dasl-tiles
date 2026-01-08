@@ -6,16 +6,22 @@
   "author": "Robin Berjon <robin@berjon.com>",
   "license": "Apache-2.0",
   "scripts": {
-    "watch": "node --watch loader/server.js webtiles.bast",
+    "watch": "node --watch loading-server/server.js webtiles.bast",
     "release": "release-it",
     "test": "mocha"
   },
   "bin": {
-    "tiles-loader": "loader/server.js"
+    "tiles-loading-server": "loading-server/server.js"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/darobin/dasl-tiles.git"
+  },
+  "exports": {
+    "./loading-server": "./loading-server/index.js",
+    "./loader": "./loader.js",
+    "./car-reader": "./car-reader.js",
+    "./writer": "./writer.js"
   },
   "eslintConfig": {
     "env": {
