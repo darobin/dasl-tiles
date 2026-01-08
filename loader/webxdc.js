@@ -41,7 +41,6 @@ export class WebXDCTileLoader extends ContentSchemeTileLoader {
         manifest.name = toml.name;
       }
       const mediaType = mime.getType(path);
-      console.warn(mediaType, path, zip);
       manifest.resources[keyPath] = {
         src: await zip.files[path].async('arraybuffer'),
         'content-type': mediaType,

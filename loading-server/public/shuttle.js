@@ -22,9 +22,10 @@ const { promise: readyToLoad, resolve: resolveReadyToLoad } = Promise.withResolv
 const PFX = 'tiles-shuttle-';
 const RCV_LOAD = `${PFX}load`;            // mothership tells us to start loading
 const SND_READY = `${PFX}ready`;          // tell mothership we're loaded and ready
-const SND_ERROR = `${PFX}error`;          // error to mothership
 const RCV_SET_TITLE = `${PFX}set-title`;  // set the title
 const RCV_SET_ICON = `${PFX}set-icon`;    // set the icon
+
+let error, warn;
 
 // XXX TODO
 // - If there's a way to pass references around, get the worker and mothership
@@ -47,19 +48,24 @@ window.addEventListener('message', async (ev) => {
     if (action === RCV_LOAD) {
       workerId = id;
       mothership = ev.source;
+      const utils = makeUtils({ mothership, workerId });
+      error = utils.error;
+      warn = utils.warn;
       await loadWorker();
       window.parent.postMessage({ id, action: SND_READY }, '*');
     }
     else if (action === RCV_SET_TITLE) {
-      document.title = ev.data.title;
+      const { payload } = ev.data;
+      warn(`Setting title to ${payload?.title}`);
+      document.title = payload?.title;
     }
     else if (action === RCV_SET_ICON) {
-      const { path } = ev.data;
+      const { payload } = ev.data;
       // If the worker is loaded, we just load the icon straight up.
       // Otherwise we need to request resolving the path from the mothership,
       // the way that workers do.
       if (worker) {
-        document.querySelector('link[rel="icon"]')?.setAttribute('href', path);
+        document.querySelector('link[rel="icon"]')?.setAttribute('href', payload?.path);
       }
       else {
         // XXX make request system reusable
@@ -87,9 +93,12 @@ async function loadWorker () {
     console.warn(`Failed to get worker registration`, err);
   }
   if (!curSWReg) {
-    curSWReg = await navigator.serviceWorker.register('worker.js', { scope: '/' });
+    curSWReg = await navigator.serviceWorker.register('worker.js', { scope: '/', type: 'module' });
   }
   await navigator.serviceWorker.ready;
+  window.addEventListener('beforeunload', async () => {
+    await curSWReg.unregister();
+  });
   // navigator.serviceWorker.onmessage
   worker = curSWReg.active;
   worker.onerror = (ev) => error(`Worker error`, ev);
@@ -109,8 +118,25 @@ function renderWorkerFrame () {
   );
 }
 
-async function error (...msg) {
-  console.warn(...msg);
-  if (!mothership) return;
-  mothership.postMessage({ action: SND_ERROR, msg, id: workerId });
+// #### WARNING
+// ---- This stuff should be in utils.js, but import isn't yet universally
+// supported in browsers. Move it later in 2026.
+const TILES_PFX = 'tiles-';
+const SND_ERROR = `${TILES_PFX}error`;        // error to parent
+const SND_WARNING = `${TILES_PFX}warn`;       // warn parent
+
+function makeUtils({ shuttle, mothership, workerId }) {
+  const parent = shuttle || mothership;
+  return {
+    warn (...msg) {
+      console.warn(...msg);
+      if (!parent) return;
+      parent.postMessage({ action: SND_WARNING, msg, id: workerId });
+    },
+    error (...msg) {
+      console.warn(...msg);
+      if (!parent) return;
+      parent.postMessage({ action: SND_ERROR, msg, id: workerId });
+    },
+  };
 }

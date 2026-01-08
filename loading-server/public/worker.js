@@ -34,10 +34,11 @@ will treat as passthrough. This is the path that we load all support content fro
 (including the index.html that loads us).
 */
 
-
 let id;       // keep track of our id so the shuttle knows who we are when we talk
 let shuttle;  // hold on to the source so we can initiate sending up
 const { promise: readyToLoad, resolve: resolveReadyToLoad } = Promise.withResolvers();
+
+// let warn = () => {};
 
 // All of the below are described as communicating with the mothership, but it's
 // mediated by the shuttle.
@@ -46,7 +47,6 @@ const RCV_LOAD = `${PFX}load`;          // mothership tells us to start loading
 const SND_READY = `${PFX}ready`;        // tell mothership we're loaded and ready
 const SND_REQUEST = `${PFX}request`;    // request something from mothership
 const RCV_RESPONSE = `${PFX}response`;  // mothership responds to a request
-const SND_WARNING = `${PFX}warn`;       // warn mothership
 
 self.skipWaiting();
 
@@ -55,7 +55,7 @@ const requestMap = new Map();
 let currentRequest = 0;
 async function request (type, payload) {
   currentRequest++;
-  warn(`[SW] current request ${currentRequest}`);
+  warn(`[SW] current request ${currentRequest}`, {id, type, payload: { requestId: currentRequest, ...payload }});
   const p = new Promise((resolve, reject) => {
     requestMap.set(currentRequest, { resolve, reject });
   });
@@ -72,6 +72,8 @@ self.addEventListener('message', async (ev) => {
     id = ev.data.id;
     resolveReadyToLoad();
     shuttle = ev.source;
+    // const utils = makeUtils({ shuttle, workerId: id });
+    // warn = utils.warn;
     ev.source.postMessage({ action: SND_READY, id });
   }
   else if (action === RCV_RESPONSE) {
@@ -91,7 +93,6 @@ self.addEventListener('message', async (ev) => {
 });
 
 self.addEventListener('fetch', async (ev) => {
-  warn('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
   warn(`FETCH of "${ev.request.url}"`);
   const url = new URL(ev.request.url);
   // IMPORTANT
@@ -106,7 +107,7 @@ self.addEventListener('fetch', async (ev) => {
   warn(`respondWith`);
   const { promise, resolve, reject } = Promise.withResolvers();
   ev.respondWith(promise);
-  warn(`making request`);
+  warn(`making request for ${url.pathname}`);
   try {
     const r = await request('resolve-path', { path: url.pathname }); // XXX this may be a nested await, delete this comment if it works
     warn(`got r `, r);
@@ -131,6 +132,29 @@ function response (status = 200, headers = { 'content-type': 'text/plain' }) {
 function bodify (body) {
   return Array.isArray(body) ? new Uint8Array(body) : body;
 }
+
+// #### WARNING
+// ---- This stuff should be in utils.js, but import isn't yet universally
+// supported in browsers. Move it later in 2026.
+const TILES_PFX = 'tiles-';
+// const SND_ERROR = `${TILES_PFX}error`;        // error to parent
+const SND_WARNING = `${TILES_PFX}warn`;       // warn parent
+
+// function makeUtils({ shuttle, mothership, workerId }) {
+//   const parent = shuttle || mothership;
+//   return {
+//     warn (...msg) {
+//       console.warn(...msg);
+//       if (!parent) return;
+//       parent.postMessage({ action: SND_WARNING, msg, id: workerId });
+//     },
+//     error (...msg) {
+//       console.warn(...msg);
+//       if (!parent) return;
+//       parent.postMessage({ action: SND_ERROR, msg, id: workerId });
+//     },
+//   };
+// }
 
 async function warn (...msg) {
   console.warn(...msg);
