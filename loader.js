@@ -30,16 +30,19 @@ The tile-loading architecture has three levels that all communicate together:
 
 import { el } from "./lib/el.js";
 
+const TILES_PFX = 'tiles-';
 const SHUTTLE_PFX = 'tiles-shuttle-';
 const SND_SHUTTLE_LOAD = `${SHUTTLE_PFX}load`;        // tell worker to roll
 const RCV_SHUTTLE_READY = `${SHUTTLE_PFX}ready`;      // worker ready
+const SND_SET_TITLE = `${SHUTTLE_PFX}set-title`;      // set the title
+const SND_SET_ICON = `${SHUTTLE_PFX}set-icon`;        // set the icon
 const WORKER_PFX = 'tiles-worker-';
 const SND_WORKER_LOAD = `${WORKER_PFX}load`;          // tell worker to roll
 const RCV_WORKER_READY = `${WORKER_PFX}ready`;        // worker ready
 const RCV_WORKER_REQUEST = `${WORKER_PFX}request`;    // worker requested something
 const SND_WORKER_RESPONSE = `${WORKER_PFX}response`;  // respond to a worker
-const WORKER_WARNING = `${WORKER_PFX}warn`;           // worker warnings
-const SHUTTLE_ERROR = `${SHUTTLE_PFX}error`;          // shuttle errors
+const TILES_WARNING = `${TILES_PFX}warn`;             // worker warnings
+const TILES_ERROR = `${TILES_PFX}error`;              // shuttle errors
 
 export class TileMothership {
   #loaders = [];
@@ -52,11 +55,11 @@ export class TileMothership {
   init () {
     window.addEventListener('message', async (ev) => {
       const { action } = ev.data || {};
-      if (action === WORKER_WARNING) {
+      if (action === TILES_WARNING) {
         const { msg, id } = ev.data;
         console.warn(`[W:${id}]`, ...msg);
       }
-      if (action === SHUTTLE_ERROR) {
+      if (action === TILES_ERROR) {
         const { msg, id } = ev.data;
         console.error(`[S:${id}]`, ...msg);
       }
@@ -68,14 +71,19 @@ export class TileMothership {
       else if (action === RCV_WORKER_READY) {
         const { id } = ev.data;
         console.info(`[W:${id}] worker ready!`);
+        const tile = this.#id2tile.get(id);
+        if (!tile) throw new Error(`No tile shuttle with ID ${id}`);
+        tile.dispatchEvent(new Event('load'));
       }
       else if (action === RCV_WORKER_REQUEST) {
         const { type, id, payload } = ev.data;
+        console.info(`[W:${id}] worker request`, type, id, payload);
         if (type === 'resolve-path') {
           const { path, requestId } = payload;
           const tile = this.#id2tile.get(id);
           if (!tile) throw new Error(`No tile shuttle with ID ${id}`);
           const { status, headers, body } = await tile.resolvePath(path);
+          console.info(`[W:${id}] sending back`, status, headers, body);
           this.sendToShuttle(id, SND_WORKER_RESPONSE, { requestId, response: { status, headers, body } });
         }
       }
@@ -120,17 +128,27 @@ export class TileMothership {
   }
 }
 
-export class Tile {
+export class Tile extends EventTarget {
   #mothership;
   #url;
   #manifest;
   #pathLoader;
   #shuttleId;
   constructor (mothership, url, manifest, pathLoader) {
+    super();
     this.#mothership = mothership;
     this.#url = url;
     this.#manifest = manifest;
     this.#pathLoader = pathLoader;
+    this.addEventListener('load', () => {
+      if (this.#manifest?.name) {
+        this.#mothership.sendToShuttle(this.#shuttleId, SND_SET_TITLE, { title: this.#manifest?.name });
+      }
+      const icon = this.#manifest?.icons?.[0]?.src;
+      if (icon) {
+        this.#mothership.sendToShuttle(this.#shuttleId, SND_SET_ICON, { path: icon });
+      }
+    });
   }
   get url () {
     return this.#url;
