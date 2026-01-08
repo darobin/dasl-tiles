@@ -60,12 +60,40 @@ export class WebXDCTileLoader extends ContentSchemeTileLoader {
 
 // This is the resource that implements webxdc.js. (Based on webxdc/hello.)
 // Note that joinRealtimeChannel() is marked as optional, so we skip it.
-// These are mostly stubs, e.g. sendToChat() just dumps to the console,
-// setUpdateListener() does nothing at all.
+// These are mostly stubs, e.g. sendToChat() just dumps to the console.
 function makeWebXDCAPI ({ selfName = 'Dazzling Kitten', selfAddr } = {}) {
   return [
     // self-func
     `window.webxdc = (() => {`,
+
+    // utils
+    `let updateListener = (_) => {};
+    function getUpdates() {
+      const updatesJSON = window.localStorage.getItem(updatesKey);
+      return updatesJSON ? JSON.parse(updatesJSON) : [];
+    }
+    const updatesKey = "__xdcUpdatesKey__";
+    window.addEventListener("storage", (event) => {
+      if (event.key == null) {
+        window.location.reload();
+      } else if (event.key === updatesKey) {
+        const updates = JSON.parse(event.newValue);
+        const update = updates[updates.length - 1];
+        update.max_serial = updates.length;
+        console.log("[Webxdc] " + JSON.stringify(update));
+        updateListener(update);
+      } else if (event.key === ephemeralUpdateKey) {
+        const [sender, update] = JSON.parse(event.newValue);
+        // @ts-ignore: is_trashed() is private
+        if (
+          window.webxdc.selfAddr !== sender &&
+          realtimeListener &&
+          !realtimeListener.is_trashed()
+        ) {
+          realtimeListener.receive(Uint8Array.from(update));
+        }
+      }
+    });`,
 
     // returned object
     `return {`,
@@ -82,6 +110,18 @@ function makeWebXDCAPI ({ selfName = 'Dazzling Kitten', selfAddr } = {}) {
     getAllUpdates: () => {
       console.log("[Webxdc] WARNING: getAllUpdates() is deprecated.");
       return Promise.resolve([]);
+    },
+    setUpdateListener: (cb, serial = 0) => {
+      const updates = getUpdates();
+      const maxSerial = updates.length;
+      updates.forEach((update) => {
+        if (update.serial > serial) {
+          update.max_serial = maxSerial;
+          cb(update);
+        }
+      });
+      updateListener = cb;
+      return Promise.resolve();
     },`,
 
     // sendToChat
