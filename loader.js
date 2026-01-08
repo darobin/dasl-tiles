@@ -231,11 +231,11 @@ function txt (str) {
 
 // XXX NEXT STEPS
 // - this is a good point to refactor into library+demo
-// - move the experiment entirely into webtil.es
+// x move the experiment entirely into webtil.es
 //  x put a basic build thing there
-//  - npm link
-// - rename loader to loading-server and document
-// - use package.json to expose tile-loader as @dasl/tiles/loader (and car-reader?)
+//  x npm link
+// x rename loader to loading-server and document
+// x use package.json to expose tile-loader as @dasl/tiles/loader (and car-reader?)
 // - refactor tiles loader into split
 // - do XDC and CAR first
 // - need an AT publisher

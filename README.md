@@ -43,4 +43,33 @@ root.createReadStream().pipe(res); // sends the content
 ## Tiles Loading Server
 
 Due to limitations in browser technology, supporting tiles in browsers requires
-a very minimalistic server set up
+a very minimalistic server set up so as to isolate tiles in their own origin,
+while maintaining the ability to run a service worker (otherwise it's either one
+or the other).
+
+The tiles loader is expected to load from `https://load.server/.well-known/web-tiles/`.
+The loading server handles that and redirects to 
+`https://random-subdomain.server/.well-known/web-tiles/` with the right headers.
+That's it!
+
+You can use it either as a library or as a CLI tool.
+
+As a library, there's a function that takes a domain and returns an Express
+router configured correctly. Note that if you provide `example.site` for the
+base host, it will set itself up to listen on `load.example.site` and redirect
+to `twenty-random-letters.example.site`.
+
+```js
+import express from 'express';
+import { createTileLoadingRouter } from '@dasl/tiles/loading-server';
+
+const app = express();
+app.set('trust proxy', 'loopback'); // need this
+app.use(createTileLoadingRouter('example.site'));
+````
+
+Or just install the global tool, or run it with `npx`:
+
+```
+tiles-loading-server example.site 8080
+```
