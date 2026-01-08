@@ -14,12 +14,13 @@ export class CARTileLoader extends ContentSchemeTileLoader {
   async processContent (carData, scheme, url, mothership) {
     let car;
     try {
-      car = fromUint8Array(carData);
+      car = fromUint8Array(new Uint8Array(carData));
     }
     catch (e) {
       return false;
     }
-    const { data: manifest } = await car.header();
+    console.warn(`car`, car);
+    const { data: manifest } = car.header;
     delete manifest.version;
     delete manifest.roots;
     Object.keys(manifest.resources).forEach(k => {
@@ -31,7 +32,7 @@ export class CARTileLoader extends ContentSchemeTileLoader {
     const offsets = {};
     for await (const entry of car) {
       const { cid, bytesStart, bytesEnd } = entry;
-      offsets[stringifyCID(cid)] = [bytesStart, bytesEnd - 1]; // XXX CHECK THAT - 1 IS CORRECT
+      offsets[stringifyCID(cid)] = [bytesStart, bytesEnd];
     }
     const loader = new CARPathLoader(manifest, carData, offsets);
     return new Tile(mothership, url, manifest, loader);
