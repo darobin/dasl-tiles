@@ -11,6 +11,7 @@
     "test": "mocha"
   },
   "bin": {
+    "atile": "atile/atile.js",
     "tiles-loading-server": "loading-server/server.js"
   },
   "repository": {
@@ -52,9 +53,11 @@
     "@atcute/cbor": "^2.2.5",
     "@atcute/cid": "^2.2.3",
     "@atcute/varint": "^1.0.2",
+    "commander": "^14.0.2",
     "express": "^5.2.1",
     "install": "^0.13.0",
     "jszip": "^3.10.1",
+    "keytar": "^7.9.0",
     "mime": "^4.1.0",
     "nanoid": "^5.1.6",
     "npm": "^11.7.0",
