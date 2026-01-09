@@ -9,7 +9,7 @@ import {
   getDefaultUser,
   setDefaultUser,
   unsetDefaultUser
-} from "../lib/credentials.js";
+} from "./credentials.js";
 import makeRel from '../lib/rel.js';
 
 const rel = makeRel(import.meta.url);
