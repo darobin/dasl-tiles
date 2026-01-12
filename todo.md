@@ -30,6 +30,9 @@
 ## Demos & Ideas
 - https://www.inkandswitch.com/essay/malleable-software/
 - https://dl.acm.org/doi/10.1145/332040.332473
-- https://www.youtube.com/watch?v=ntaudUum06E
+- https://www.youtube.com/watch?v=ntaudUum06E (19:35)
+  - webstrates
+  - codestrates
+  - videostrates
 - https://theses.hal.science/tel-02612943v1
 - https://vis.csail.mit.edu/pubs/varv/

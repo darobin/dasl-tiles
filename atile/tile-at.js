@@ -18,6 +18,8 @@ export class TilePublisher extends EventTarget {
   async login (identifier, password) {
     await this.#at.login({ identifier, password });
   }
+  // XXX this should also be able to process CAR Tiles
+  // And maybe an option to publish to a CAR.
   async loadFromDirectory (path) {
     if (this.#sourceDirectory) throw new Error('TilePublisher has already loaded a directory.');
     this.#sourceDirectory = path;
