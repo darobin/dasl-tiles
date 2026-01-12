@@ -1,10 +1,12 @@
 
+import { cwd } from "node:process";
 import { createReadStream } from "node:fs";
 import { readdir, readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, basename, isAbsolute, resolve, normalize } from 'node:path';
 import { AtpAgent } from '@atproto/api';
 import { TID } from "@atproto/common";
 import { create, CODEC_RAW, CODEC_DCBOR as CODEC_DRISL, toCidLink, toString } from '@atcute/cid';
+import { encode } from '@atcute/cbor';
 import { detectBufferMime, detectFilenameMime } from 'mime-detect';
 
 export class TilePublisher extends EventTarget {
@@ -22,19 +24,22 @@ export class TilePublisher extends EventTarget {
   // XXX this should also be able to process CAR Tiles
   // And maybe an option to publish to a CAR.
   async loadFromDirectory (path) {
+    if (!isAbsolute(path)) path = normalize(resolve(cwd(), path));
     if (this.#sourceDirectory) throw new Error('TilePublisher has already loaded a directory.');
     this.#sourceDirectory = path;
-    const files = await readdir(path, { recursive: true, withFileTypes: true })
+    const files = (await readdir(path, { recursive: true, withFileTypes: true }))
       .filter(ent => ent.isFile())
       .map(ent => {
-        const f = join(ent.parentPath, ent.name);
-        return `/${f.replace(/^.\//, '')}`;
+        const f = join(ent.parentPath, ent.name).replace(path, '');
+        return `/${f.replace(/^\.?\//, '')}`;
       })
       .filter(f => f !== '/manifest.json')
     ;
-    this.#manifest = JSON.parse(readFile(join(path, 'manifest.json')));
+    this.#manifest = JSON.parse(await readFile(join(path, 'manifest.json')));
     if (!this.#manifest.resources) this.#manifest.resources = {};
     for (const file of files) {
+      if (basename(file) === '.DS_Store') continue;
+      console.warn(`File is ${file} for path ${path}`);
       const src = join(path, file);
       const res = (file === '/index.html') ? '/' : file;
       this.#sourceMap[res] = src;
@@ -43,7 +48,9 @@ export class TilePublisher extends EventTarget {
       if (!this.#manifest.resources[res]) this.#manifest.resources[res] = {};
       this.#manifest.resources[res].src = toCidLink(cid);
       if (!this.#manifest.resources[res]['content-type']) {
-        this.#manifest.resources[res]['content-type'] = detectFilenameMime(src, await detectBufferMime(buf));
+        let mime = detectFilenameMime(src, await detectBufferMime(buf));
+        if (/text\/html\s*;\s*charset=us-ascii/.test(mime)) mime = 'text/html';
+        this.#manifest.resources[res]['content-type'] = mime;
       }
     }
   }
@@ -80,10 +87,10 @@ export class TilePublisher extends EventTarget {
 
     // publish the tile
     const collection = 'ing.dasl.masl';
-    const $type = `${collection}#tile`;
-    const cid = await create(CODEC_DRISL, this.#manifest);
+    // const $type = `${collection}#tile`;
+    const cid = await create(CODEC_DRISL, encode(this.#manifest));
     const record = {
-      $type,
+      $type: collection,
       cid: toString(cid),
       tile: this.#manifest,
       createdAt: new Date().toISOString(),
@@ -98,7 +105,8 @@ export class TilePublisher extends EventTarget {
     };
   }
   event (type, data) {
-    const evt = new Event(type, data);
+    const evt = new Event(type);
+    Object.entries(data).forEach(([k, v]) => evt[k] = v);
     this.dispatchEvent(evt);
   }
 }

@@ -73,13 +73,13 @@ program
       const password = await getPassword(identifier);
       await tp.login(identifier, password);
       console.warn(chalk.blue(`• Logged in`));
-      dir = resolve(dir, cwd());
+      dir = resolve(cwd(), dir);
       await tp.loadFromDirectory(dir);
       console.warn(chalk.blue(`• Loaded content from "${dir}"`));
-      tp.addEventListener('warn', (ev) => console.warn(chalk.yellow.bold(`WARNING: ${ev.data?.message}.`)));
-      tp.addEventListener('start-upload', (ev) => console.warn(chalk.gray(`Uploading ${ev.data?.resource}.`)));
-      tp.addEventListener('fail-upload', (ev) => console.warn(chalk.red(`UPLOAD FAILED for ${ev.data?.resource}.`)));
-      tp.addEventListener('done-upload', (ev) => console.warn(chalk.green.bold(`${ev.data?.resource} uploaded OK.`)));
+      tp.addEventListener('warn', (ev) => console.warn(chalk.yellow.bold(`WARNING: ${ev.message}.`)));
+      tp.addEventListener('start-upload', (ev) => console.warn(chalk.gray(`Uploading ${ev.resource}.`)));
+      tp.addEventListener('fail-upload', (ev) => console.warn(chalk.red(`UPLOAD FAILED for ${ev.resource}.`)));
+      tp.addEventListener('done-upload', (ev) => console.warn(chalk.green.bold(`${ev.resource} uploaded OK.`)));
       const { uri, success } = await tp.publish();
       if (success) {
         console.warn(chalk.green.bold(`Tile published: ${uri}.`));
@@ -89,7 +89,7 @@ program
       }
     }
     catch (err) {
-      console.error(chalk.red(`Error:`, err));
+      console.error(chalk.red(err, err.stack));
     }
   })
 ;

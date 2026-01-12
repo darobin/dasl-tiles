@@ -20,7 +20,7 @@ export const masl = {
   id: 'ing.dasl.masl',
   description: 'Lexicon for DASL (https://dasl.ing/) types used on AT, notably for Web Tiles.',
   defs: {
-    main: {
+    masl: {
       type: 'object',
       description: 'MASL metadata as defined in https://dasl.ing/masl.html',
       properties: {
@@ -142,7 +142,7 @@ export const masl = {
       },
       required: ['name', 'resources'],
     },
-    tile: {
+    main: {
       type: 'record',
       description: 'A tile, instantiating MASL metadata into a record',
       key: 'tid',
@@ -158,7 +158,7 @@ export const masl = {
           tile: {
             type: 'ref',
             description: 'The MASL content',
-            ref: 'ing.dasl.masl#main',
+            ref: 'ing.dasl.masl#masl',
           },
           createdAt: {
             type: 'string',
