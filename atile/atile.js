@@ -1,15 +1,19 @@
 #!/usr/bin/env node
-import { exit } from "node:process";
+import { cwd, exit } from "node:process";
 import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { program } from 'commander';
+import chalk from "chalk";
 import {
   addCredentials,
   deleteCredentials,
   listCredentials,
   getDefaultUser,
   setDefaultUser,
-  unsetDefaultUser
+  unsetDefaultUser,
+  getPassword
 } from "./credentials.js";
+import { TilePublisher } from './tile-at.js';
 import makeRel from '../lib/rel.js';
 
 const rel = makeRel(import.meta.url);
@@ -56,20 +60,43 @@ program
   })
 ;
 
-// XXX Options others can use
-//  -- user
-//   .option('--user <handle>', 'the handle to use')
+// Tile publishing
+program
+  .command('publish')
+  .argument('<dir>', 'path to a directory that contains a tile and its manifest')
+  .option('-u, --user <handle>', 'the handle to use if not the default')
+  .action(async (dir, options) => {
+    try {
+      console.warn(chalk.blue(`Publishing tile from "${dir}"`));
+      const tp = new TilePublisher();
+      const identifier = options.user || await getDefaultUser();
+      const password = await getPassword(identifier);
+      await tp.login(identifier, password);
+      console.warn(chalk.blue(`• Logged in`));
+      dir = resolve(dir, cwd());
+      await tp.loadFromDirectory(dir);
+      console.warn(chalk.blue(`• Loaded content from "${dir}"`));
+      tp.addEventListener('warn', (ev) => console.warn(chalk.yellow.bold(`WARNING: ${ev.data?.message}.`)));
+      tp.addEventListener('start-upload', (ev) => console.warn(chalk.gray(`Uploading ${ev.data?.resource}.`)));
+      tp.addEventListener('fail-upload', (ev) => console.warn(chalk.red(`UPLOAD FAILED for ${ev.data?.resource}.`)));
+      tp.addEventListener('done-upload', (ev) => console.warn(chalk.green.bold(`${ev.data?.resource} uploaded OK.`)));
+      const { uri, success } = await tp.publish();
+      if (success) {
+        console.warn(chalk.green.bold(`Tile published: ${uri}.`));
+      }
+      else {
+        console.warn(chalk.red(`FAILED to publish tile.`));
+      }
+    }
+    catch (err) {
+      console.error(chalk.red(`Error:`, err));
+    }
+  })
+;
 
 // XXX What this does
 // - atile publish path/to/dir
-//  - uses manifest.json
-//  - automatically finds all resources
-//  - if resources has that file, just update the CID
-//  - index to /
-//  - media type
-//  - can save a .atile.json that has the handle and tid
-//  - use an ing.dasl.tile lexicon
-//  - register lexicon
+//  - can save a .atile.json that has the handle and tid (or maybe to $HOME/.atile/?)
 // - atile update path/to/dir
 //  - uses .atile.json to update, can be given otherwise
 // - atile delete path/to/dir

@@ -55,6 +55,7 @@
     "@atcute/varint": "^1.0.2",
     "@atproto/api": "^0.18.13",
     "@atproto/common": "^0.5.7",
+    "chalk": "^5.6.2",
     "commander": "^14.0.2",
     "express": "^5.2.1",
     "install": "^0.13.0",
