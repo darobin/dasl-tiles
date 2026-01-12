@@ -3,7 +3,8 @@ import { createReadStream } from "node:fs";
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { AtpAgent } from '@atproto/api';
-import { create, CODEC_RAW, toCidLink, toString } from '@atcute/cid';
+import { TID } from "@atproto/common";
+import { create, CODEC_RAW, CODEC_DCBOR as CODEC_DRISL, toCidLink, toString } from '@atcute/cid';
 import { detectBufferMime, detectFilenameMime } from 'mime-detect';
 
 export class TilePublisher extends EventTarget {
@@ -78,10 +79,23 @@ export class TilePublisher extends EventTarget {
     );
 
     // publish the tile
-
-    // XXX
-    //  - publish the tile
-    //  - return the at-uri
+    const collection = 'ing.dasl.masl';
+    const $type = `${collection}#tile`;
+    const cid = await create(CODEC_DRISL, this.#manifest);
+    const record = {
+      $type,
+      cid: toString(cid),
+      tile: this.#manifest,
+      createdAt: new Date().toISOString(),
+    };
+    const rkey = TID.nextStr();
+    const putData = { repo: this.#at.assertDid, collection, rkey, record };
+    const res = await this.#at.com.atproto.repo.putRecord(putData);
+    return {
+      record,
+      uri: res.data?.uri,
+      success: res.success,
+    };
   }
   event (type, data) {
     const evt = new Event(type, data);
