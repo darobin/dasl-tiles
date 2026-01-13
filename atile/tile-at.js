@@ -14,11 +14,15 @@ export class TilePublisher extends EventTarget {
   #at;
   #sourceDirectory = false;
   #sourceMap = {};
-  constructor () {
+  #identifier;
+  #reuseIdentifiers = false;
+  constructor (options) {
     super();
+    this.#reuseIdentifiers = !!options?.reuseIdentifiers;
     this.#at = new AtpAgent({ service: 'https://bsky.social' });
   }
   async login (identifier, password) {
+    this.#identifier = identifier;
     await this.#at.login({ identifier, password });
   }
   // XXX this should also be able to process CAR Tiles
@@ -95,6 +99,11 @@ export class TilePublisher extends EventTarget {
       tile: this.#manifest,
       createdAt: new Date().toISOString(),
     };
+    // XXX
+    // - if #reuseIdentifiers, load previous identifier
+    // - if there's one, parse the URL
+    // - check that it has the right handle, otherwise it's an error
+    // - use the tid if there, otherwise generate one
     const rkey = TID.nextStr();
     const putData = { repo: this.#at.assertDid, collection, rkey, record };
     const res = await this.#at.com.atproto.repo.putRecord(putData);
