@@ -8,6 +8,7 @@ import { TID } from "@atproto/common";
 import { create, CODEC_RAW, CODEC_DCBOR as CODEC_DRISL, toCidLink, toString } from '@atcute/cid';
 import { encode } from '@atcute/cbor';
 import { detectBufferMime, detectFilenameMime } from 'mime-detect';
+import { getSavedIdentifier, saveIdentifier } from './settings.js'
 
 export class TilePublisher extends EventTarget {
   #manifest = { resources: {} };
@@ -50,7 +51,7 @@ export class TilePublisher extends EventTarget {
       const buf = await readFile(src);
       const cid = await create(CODEC_RAW, buf);
       if (!this.#manifest.resources[res]) this.#manifest.resources[res] = {};
-      this.#manifest.resources[res].src = toCidLink(cid);
+      this.#manifest.resources[res].src = toCidLink(cid).toJSON(); // this will bite you
       if (!this.#manifest.resources[res]['content-type']) {
         let mime = detectFilenameMime(src, await detectBufferMime(buf));
         if (/text\/html\s*;\s*charset=us-ascii/.test(mime)) mime = 'text/html';
@@ -80,7 +81,7 @@ export class TilePublisher extends EventTarget {
         const rs = createReadStream(this.#sourceMap[res]);
         const uploaded = await this.#at.com.atproto.repo.uploadBlob(rs, { encoding: 'application/octet-stream' });
         const pdsCID = uploaded.data.blob.ref.toString();
-        const cid = toString(this.#manifest.resources[res].src);
+        const cid = this.#manifest.resources[res].src.$link;
         if (pdsCID !== cid) {
           this.event('fail-upload', { resource: res });
           throw new Error(`CID for "${res}" does not match: ${cid} (ours) vs ${pdsCID} (PDS)`);
@@ -99,14 +100,22 @@ export class TilePublisher extends EventTarget {
       tile: this.#manifest,
       createdAt: new Date().toISOString(),
     };
-    // XXX
-    // - if #reuseIdentifiers, load previous identifier
-    // - if there's one, parse the URL
-    // - check that it has the right handle, otherwise it's an error
-    // - use the tid if there, otherwise generate one
-    const rkey = TID.nextStr();
+    let rkey = TID.nextStr();
+    if (this.#reuseIdentifiers) {
+      const uri = await getSavedIdentifier(this.#sourceDirectory);
+      if (uri) {
+        const [did, , tid] = uri.replace(/^at:\/\//, '').split('/');
+        if (tid) {
+          if (did !== this.#at.assertDid && did !== this.#identifier) {
+            this.event('warn', { message: 'Cannot reuse previous identifier when the handle has changed.' });
+          }
+          rkey = tid;
+        }
+      }
+    }
     const putData = { repo: this.#at.assertDid, collection, rkey, record };
     const res = await this.#at.com.atproto.repo.putRecord(putData);
+    if (res.success && this.#reuseIdentifiers) saveIdentifier(this.#sourceDirectory, res.data?.uri);
     return {
       record,
       uri: res.data?.uri,
