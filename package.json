@@ -52,6 +52,7 @@
     "@atcute/car": "^5.0.0",
     "@atcute/cbor": "^2.2.8",
     "@atcute/cid": "^2.2.3",
+    "@atcute/client": "^4.2.1",
     "@atcute/varint": "^1.0.2",
     "@atproto/api": "^0.18.13",
     "@atproto/common": "^0.5.7",

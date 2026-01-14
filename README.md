@@ -73,3 +73,51 @@ Or just install the global tool, or run it with `npx`:
 ```
 tiles-loading-server example.site 8080
 ```
+
+## `atile` tool
+
+The `atile` tool is used to publish tiles on AT proto. Most operations revolve
+around a tile source contained in a directory, with a manifest, that you want
+to publish to AT.
+
+```
+Usage: atile [options] [command]
+
+Manipulating tiles on the AT protocol
+
+Options:
+  -V, --version                  output the version number
+  -h, --help                     display help for command
+
+Commands:
+  login <handle> <appPassword>   log a handle into AT so that you can post
+  logout <handle>                log a specific handle out
+  default-user <handle>          set the default handle to use when unspecified
+  list-users                     list all logged in handles you have
+  publish [options] <dir>        publish a tile to the Atmosphere
+  delete [options] <dirOrATURL>  delete a tile from the Atmosphere
+  help [command]                 display help for command
+```
+
+In order to publish, you must be logged in. For that, you use the `atile login`
+command, with an app password. Passwords are stored using `keytar`, which should
+map to a safe option on your platform. Every time that you log in with a different
+handle, it gets saved separately (and the latest one becomes the default handle).
+You can then use a specific handle for other commands with the `--user` option.
+
+You can then use `atile logout` to log a specific handle out, `atile list-users`
+to list all the logged in handles, and `atile default user` to change the default
+one.
+
+To publish, use `atile publish` and give it the path to a directory that contains
+a `manifest.json`, an `index.html`, and all the other files in the tile. It will
+automatically populate the `resources` entry of the manifest with the correct
+CID and guess the media type. If there is already an entry for that path in 
+`resources`, it will keep it and just update the CID. This makes it possible to
+set your own HTTP headers there. You can change the handle you use with `--user`
+and ask that atile saves the AT URL of the published tile with `-s`. In the latter
+case, it will automatically reuse that URL whenever it's given the same path to
+publish from.
+
+To delete a tile, use `atile delete`. It acccepts either the AT URL of the tile,
+or if you've saved the published URL with `-s` it will find it given the directory.

@@ -28,6 +28,7 @@ program
 // Credentials
 program
   .command('login')
+  .description('log a handle into AT so that you can post')
   .argument('<handle>', 'your internet handle, as in robin.berjon.com')
   .argument('<appPassword>', 'an app password for that handle')
   .action(async (handle, appPassword) => {
@@ -37,6 +38,7 @@ program
 ;
 program
   .command('logout')
+  .description('log a specific handle out')
   .argument('<handle>', 'your internet handle, as in robin.berjon.com')
   .action(async (handle) => {
     await deleteCredentials(handle);
@@ -46,6 +48,7 @@ program
 ;
 program
   .command('default-user')
+  .description('set the default handle to use when unspecified')
   .argument('<handle>', 'your internet handle, as in robin.berjon.com')
   .action(async (handle) => {
     const users = (await listCredentials()).map(({ account }) => account);
@@ -55,6 +58,7 @@ program
 ;
 program
   .command('list-users')
+  .description('list all logged in handles you have')
   .action(async () => {
     console.log((await listCredentials()).map(({ account }) => account).sort().join('\n'))
   })
@@ -63,6 +67,7 @@ program
 // Tile publishing
 program
   .command('publish')
+  .description('publish a tile to the Atmosphere')
   .argument('<dir>', 'path to a directory that contains a tile and its manifest')
   .option('-u, --user <handle>', 'the handle to use if not the default')
   .option('-s, --stable-id', 'save and reuse the tile identifier, updates previous version in place')
@@ -98,6 +103,7 @@ program
 ;
 program
   .command('delete')
+  .description('delete a tile from the Atmosphere')
   .argument('<dirOrATURL>', 'path to a directory that contains a tile or at: URL of one')
   .option('-u, --user <handle>', 'the handle to use if not the default')
   .action(async (dirOrURL, options) => {
