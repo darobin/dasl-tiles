@@ -133,7 +133,6 @@ export class TilePublisher extends EventTarget {
       if (!url) throw new Error(`Cannot recover saved URL for ${dirOrURL}, please provide AT URL directly.`);
     }
     const [repo, collection, rkey] = url.replace(/^at:\/\//, '').split('/');
-    console.warn(url, { repo, collection, rkey });
     const res = await this.#at.com.atproto.repo.deleteRecord({ repo, collection, rkey });
     return {
       uri: url,

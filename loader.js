@@ -167,7 +167,11 @@ export class Tile extends EventTarget {
       cursor: 'pointer',
     }});
     card.addEventListener('click', async () => {
-      const tileRenderer = await this.renderContent(options?.contentHeight || card.offsetHeight);
+      const tileRenderer = await this.renderContent(
+        options?.contentHeight ||
+        this.#manifest?.sizing?.height ||
+        Math.max(card.offsetHeight, 300)
+      );
       card.replaceWith(tileRenderer);
     });
     // XXX we always take the first, we could be smarter with sizes
