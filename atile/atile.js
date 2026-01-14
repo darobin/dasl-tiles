@@ -87,21 +87,43 @@ program
       }
       else {
         console.warn(chalk.red(`FAILED to publish tile.`));
+        exit(1);
       }
     }
     catch (err) {
       console.error(chalk.red(err, err.stack));
+      exit(1);
     }
   })
 ;
-
-// XXX What this does
-// - atile publish path/to/dir
-//  - can save a .atile.json that has the handle and tid (or maybe to $HOME/.atile/?)
-// - atile update path/to/dir
-//  - uses .atile.json to update, can be given otherwise
-// - atile delete path/to/dir
-//  - same
+program
+  .command('delete')
+  .argument('<dirOrATURL>', 'path to a directory that contains a tile or at: URL of one')
+  .option('-u, --user <handle>', 'the handle to use if not the default')
+  .action(async (dirOrURL, options) => {
+    try {
+      console.warn(chalk.blue(`Deleting tile from "${dirOrURL}"`));
+      const tp = new TilePublisher();
+      const identifier = options.user || await getDefaultUser();
+      const password = await getPassword(identifier);
+      await tp.login(identifier, password);
+      console.warn(chalk.blue(`• Logged in`));
+      const { success, uri } = await tp.delete(dirOrURL);
+      tp.addEventListener('warn', (ev) => console.warn(chalk.yellow.bold(`WARNING: ${ev.message}.`)));
+      if (success) {
+        console.warn(chalk.green.bold(`Tile deleted: ${uri}.`));
+      }
+      else {
+        console.warn(chalk.red(`FAILED to delete tile.`));
+        exit(1);
+      }
+    }
+    catch (err) {
+      console.error(chalk.red(err, err.stack));
+      exit(1);
+    }
+  })
+;
 
 program.parse();
 

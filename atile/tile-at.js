@@ -122,6 +122,24 @@ export class TilePublisher extends EventTarget {
       success: res.success,
     };
   }
+  async delete (dirOrURL) {
+    let url;
+    if (/^at:\/\//.test(dirOrURL)) {
+      url = dirOrURL;
+    }
+    else {
+      if (!isAbsolute(dirOrURL)) dirOrURL = normalize(resolve(cwd(), dirOrURL));
+      url = await getSavedIdentifier(dirOrURL);
+      if (!url) throw new Error(`Cannot recover saved URL for ${dirOrURL}, please provide AT URL directly.`);
+    }
+    const [repo, collection, rkey] = url.replace(/^at:\/\//, '').split('/');
+    console.warn(url, { repo, collection, rkey });
+    const res = await this.#at.com.atproto.repo.deleteRecord({ repo, collection, rkey });
+    return {
+      uri: url,
+      success: res.success,
+    };
+  }
   event (type, data) {
     const evt = new Event(type);
     Object.entries(data).forEach(([k, v]) => evt[k] = v);
