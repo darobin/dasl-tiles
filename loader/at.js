@@ -55,7 +55,7 @@ export class ATPathLoader {
   async resolvePath (path) {
     const entry = this.#manifest?.resources?.[path];
     if (!entry?.src) return NOT_FOUND;
-    const cid = entry.src.$link;
+    const cid = entry.src.$link || entry.src.ref.$link;
     const data = await getBlob(this.#did, cid);
     if (!data) return NOT_FOUND;
     return maslResponse(entry, data);

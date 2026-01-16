@@ -8,6 +8,7 @@ import { TID } from "@atproto/common";
 import { create, CODEC_RAW, CODEC_DCBOR as CODEC_DRISL, toCidLink, toString } from '@atcute/cid';
 import { encode } from '@atcute/cbor';
 import { detectBufferMime, detectFilenameMime } from 'mime-detect';
+import { fileTypeFromBuffer } from 'file-type';
 import { getSavedIdentifier, saveIdentifier } from './settings.js'
 
 export class TilePublisher extends EventTarget {
@@ -51,7 +52,12 @@ export class TilePublisher extends EventTarget {
       const buf = await readFile(src);
       const cid = await create(CODEC_RAW, buf);
       if (!this.#manifest.resources[res]) this.#manifest.resources[res] = {};
-      this.#manifest.resources[res].src = toCidLink(cid).toJSON(); // this will bite you
+      this.#manifest.resources[res].src = {
+        $type: 'blob',
+        ref: toCidLink(cid).toJSON(), // atcute expects automatic toJSON, but with CBOR this will bite you
+        mimeType: (await fileTypeFromBuffer(buf))?.mime || 'application/octet-stream', // CAUTION: *NOT* THE REAL TYPE
+        size: buf.length,
+      };
       if (!this.#manifest.resources[res]['content-type']) {
         let mime = detectFilenameMime(src, await detectBufferMime(buf));
         if (/text\/html\s*;\s*charset=us-ascii/.test(mime)) mime = 'text/html';
@@ -79,9 +85,9 @@ export class TilePublisher extends EventTarget {
       Object.keys(this.#manifest.resources).map(async (res) => {
         this.event('start-upload', { resource: res });
         const rs = createReadStream(this.#sourceMap[res]);
-        const uploaded = await this.#at.com.atproto.repo.uploadBlob(rs, { encoding: 'application/octet-stream' });
+        const uploaded = await this.#at.com.atproto.repo.uploadBlob(rs, { encoding: this.#manifest.resources[res].src.mimeType });
         const pdsCID = uploaded.data.blob.ref.toString();
-        const cid = this.#manifest.resources[res].src.$link;
+        const cid = this.#manifest.resources[res].src.ref.$link;
         if (pdsCID !== cid) {
           this.event('fail-upload', { resource: res });
           throw new Error(`CID for "${res}" does not match: ${cid} (ours) vs ${pdsCID} (PDS)`);
