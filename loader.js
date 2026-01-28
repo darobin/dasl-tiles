@@ -142,7 +142,11 @@ export class Tile extends EventTarget {
     this.#pathLoader = pathLoader;
     this.addEventListener('load', () => {
       if (this.#manifest?.name) {
-        this.#mothership.sendToShuttle(this.#shuttleId, SND_SET_TITLE, { title: this.#manifest?.name });
+        const title = this.#manifest?.name;
+        this.#mothership.sendToShuttle(this.#shuttleId, SND_SET_TITLE, { title });
+        const ev = new Event('title-change');
+        ev.title = title;
+        this.dispatchEvent(ev);
       }
       const icon = this.#manifest?.icons?.[0]?.src;
       if (icon) {
