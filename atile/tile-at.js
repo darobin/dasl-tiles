@@ -18,9 +18,15 @@ export class TilePublisher extends EventTarget {
   #sourceMap = {};
   #identifier;
   #reuseIdentifiers = false;
+  #tid;
   constructor (options) {
     super();
-    this.#reuseIdentifiers = !!options?.reuseIdentifiers;
+    if (options.tid) {
+      this.#tid = options.tid;
+    }
+    else {
+      this.#reuseIdentifiers = !!options?.reuseIdentifiers;
+    }
     this.#at = new AtpAgent({ service: 'https://bsky.social' });
   }
   async login (identifier, password) {
@@ -106,7 +112,7 @@ export class TilePublisher extends EventTarget {
       tile: this.#manifest,
       createdAt: new Date().toISOString(),
     };
-    let rkey = TID.nextStr();
+    let rkey = this.#tid || TID.nextStr();
     if (this.#reuseIdentifiers) {
       const uri = await getSavedIdentifier(this.#sourceDirectory);
       if (uri) {

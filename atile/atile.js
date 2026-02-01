@@ -71,10 +71,11 @@ program
   .argument('<dir>', 'path to a directory that contains a tile and its manifest')
   .option('-u, --user <handle>', 'the handle to use if not the default')
   .option('-s, --stable-id', 'save and reuse the tile identifier, updates previous version in place')
+  .option('-t, --tid', 'specify the TID, will override -s')
   .action(async (dir, options) => {
     try {
       console.warn(chalk.blue(`Publishing tile from "${dir}"`));
-      const tp = new TilePublisher({ reuseIdentifiers: options.stableId });
+      const tp = new TilePublisher({ reuseIdentifiers: options.stableId, tid: options.tid });
       const identifier = options.user || await getDefaultUser();
       const password = await getPassword(identifier);
       await tp.login(identifier, password);
