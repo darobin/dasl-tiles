@@ -212,7 +212,14 @@ export class Tile extends EventTarget {
     }
     return card;
   }
-  async renderContent (height = 300) {
+  getLoadSource () {
+    return this.#mothership.getLoadSource();
+  }
+  attachIframe (ifr) {
+    this.#shuttleId = this.#mothership.registerShuttleFrame(ifr, this);
+    ifr.addEventListener('load', () => this.#mothership.startShuttle(this.#shuttleId));
+  }
+  renderContent (height = 300) {
     const ifr = el('iframe', {
       src: this.#mothership.getLoadSource(),
       style: {
@@ -222,8 +229,7 @@ export class Tile extends EventTarget {
         border: 'none',
       }
     });
-    this.#shuttleId = this.#mothership.registerShuttleFrame(ifr, this);
-    ifr.addEventListener('load', () => this.#mothership.startShuttle(this.#shuttleId));
+    this.attachIframe(ifr);
     return ifr;
   }
 }
