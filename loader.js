@@ -90,7 +90,6 @@ export class TileMothership {
     });
   }
   sendToShuttle (id, action, payload) {
-    console.warn(`sendToShuttle`, id, action, payload);
     const ifr = this.#id2shuttle.get(id);
     if (!ifr) return console.error(`No shuttle for ID ${id}`);
     ifr.contentWindow.postMessage({ id, action, payload }, '*');

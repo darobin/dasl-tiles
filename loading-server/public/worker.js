@@ -56,17 +56,13 @@ const requestMap = new Map();
 let currentRequest = 0;
 async function request (type, payload) {
   currentRequest++;
-  warn(`[SW] current request ${currentRequest}`);
   const p = new Promise((resolve, reject) => {
     requestMap.set(currentRequest, { resolve, reject });
   });
-  warn(`[SW] promise ready`, p);
   shuttle.postMessage({ action: SND_REQUEST, id, type, payload: { requestId: currentRequest, ...payload } });
-  warn(`[SW] posted to source…`);
   return p;
 }
 self.addEventListener('message', async (ev) => {
-  warn(`[SW] MESSAGE`, ev.data);
   const { action } = ev.data || {};
   if (!action) return;
   if (action === RCV_LOAD) {
@@ -78,41 +74,27 @@ self.addEventListener('message', async (ev) => {
   else if (action === RCV_RESPONSE) {
     const { payload, error } = ev.data;
     const { requestId } = payload;
-    warn(`[SW] WORKER GOT RESPONSE ${requestId}`);
     if (!requestMap.has(requestId)) return console.error(`No response ID for "${requestId}".`);
-    warn(`[SW] - had response ID`, requestMap.get(requestId)?.resolve?.toString());
     const { resolve, reject } = requestMap.get(requestId);
-    warn(`[SW] - have functions, will delete`)
     requestMap.delete(requestId);
-    warn(`[SW] - error? ${error}`);
     if (error) return reject(error);
-    warn(`[SW] - resolving`, payload);
     resolve(payload.response);
   }
 });
 
 self.addEventListener('fetch', async (ev) => {
-  warn(`FETCH of "${ev.request.url}"`);
   const url = new URL(ev.request.url);
   // IMPORTANT
   // We have to let this through since we do need to load the loader. But it means that tiles
   // can themselves load anything in loader space.
   if (/^\/\.well-known\/web-tiles\//.test(url.pathname)) return;
-  warn('waiting to be ready to load…');
   await readyToLoad;
-  warn(`ready — has id? ${id}`);
   if (!id) return ev.respondWith(new Response('Not in a loaded state.', response()));
   // IMPORTANT: Here we have to be careful not to have a nested await (of a fetch at least).
-  warn(`respondWith`);
   const { promise, resolve, reject } = Promise.withResolvers();
   ev.respondWith(promise);
-  warn(`making request`);
   try {
     const r = await request('resolve-path', { path: url.pathname }); // XXX this may be a nested await, delete this comment if it works
-    warn(`got r `, r);
-    warn(`res`, response(r.status, r.headers));
-    warn(`bod`, bodify(r.body));
-    // warn(`• fetch ${res.src.$link} got ${r.status}`)
     resolve(new Response(bodify(r.body), response(r.status, r.headers)));
   }
   catch (err) {
@@ -134,7 +116,7 @@ function bodify (body) {
 
 // NOTE: these just get copied around because browsers don't all support import
 // in SW yet.
-async function warn (...msg) {
+export async function warn (...msg) {
   console.warn(...msg);
   if (!shuttle) return;
   shuttle.postMessage({ action: SND_WARNING, msg, id });

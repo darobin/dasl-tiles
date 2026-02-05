@@ -53,7 +53,6 @@ window.addEventListener('message', async (ev) => {
       window.parent.postMessage({ id, action: SND_READY }, '*');
     }
     else if (action === RCV_SET_TITLE) {
-      warn(`Title: ${ev.data.payload?.title}`)
       document.title = ev.data.payload?.title;
     }
     else if (action === RCV_SET_ICON) {
@@ -112,13 +111,13 @@ function renderWorkerFrame () {
   );
 }
 
-async function error (...msg) {
+export async function error (...msg) {
   console.warn(...msg);
   if (!mothership) return;
   mothership.postMessage({ action: SND_ERROR, msg, id: workerId });
 }
 
-async function warn (...msg) {
+export async function warn (...msg) {
   console.warn(...msg);
   if (!mothership) return;
   mothership.postMessage({ action: SND_WARNING, msg, id: workerId });
