@@ -65,25 +65,21 @@ export class TileMothership {
       }
       else if (action === RCV_SHUTTLE_READY) {
         const { id } = ev.data;
-        console.info(`[W:${id}] shuttle ready!`);
         this.sendToShuttle(id, SND_WORKER_LOAD, { id });
       }
       else if (action === RCV_WORKER_READY) {
         const { id } = ev.data;
-        console.info(`[W:${id}] worker ready!`);
         const tile = this.#id2tile.get(id);
         if (!tile) throw new Error(`No tile shuttle with ID ${id}`);
         tile.dispatchEvent(new Event('load'));
       }
       else if (action === RCV_WORKER_REQUEST) {
         const { type, id, payload } = ev.data;
-        console.info(`[W:${id}] worker request`, type, id, payload);
         if (type === 'resolve-path') {
           const { path, requestId } = payload;
           const tile = this.#id2tile.get(id);
           if (!tile) throw new Error(`No tile shuttle with ID ${id}`);
           const { status, headers, body } = await tile.resolvePath(path);
-          console.info(`[W:${id}] sending back`, status, headers, body);
           this.sendToShuttle(id, SND_WORKER_RESPONSE, { requestId, response: { status, headers, body } });
         }
       }
