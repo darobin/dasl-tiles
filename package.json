@@ -1,7 +1,7 @@
 {
   "name": "@dasl/tiles",
   "type": "module",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "All-purpose web tiles library",
   "author": "Robin Berjon <robin@berjon.com>",
   "license": "Apache-2.0",
