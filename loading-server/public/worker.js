@@ -116,7 +116,8 @@ function bodify (body) {
 
 // NOTE: these just get copied around because browsers don't all support import
 // in SW yet.
-export async function warn (...msg) {
+// eslint-disable-next-line
+async function warn (...msg) {
   console.warn(...msg);
   if (!shuttle) return;
   shuttle.postMessage({ action: SND_WARNING, msg, id });

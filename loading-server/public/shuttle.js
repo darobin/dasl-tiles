@@ -111,13 +111,14 @@ function renderWorkerFrame () {
   );
 }
 
-export async function error (...msg) {
+async function error (...msg) {
   console.warn(...msg);
   if (!mothership) return;
   mothership.postMessage({ action: SND_ERROR, msg, id: workerId });
 }
 
-export async function warn (...msg) {
+// eslint-disable-next-line
+async function warn (...msg) {
   console.warn(...msg);
   if (!mothership) return;
   mothership.postMessage({ action: SND_WARNING, msg, id: workerId });
