@@ -40,7 +40,7 @@ export function createTileLoadingRouter (baseHost) {
           `manifest-src 'none'`,
           `object-src 'none'`,
           `base-uri 'none'`,
-          `sandbox allow-downloads allow-forms allow-modals allow-same-origin allow-scripts allow-top-navigation-by-user-activation`,
+          `sandbox allow-downloads allow-forms allow-modals allow-popups allow-same-origin allow-scripts`,
         ].join('; '),
         'tk': 'N',
         'x-robots-tag': "noai, noimageai",
