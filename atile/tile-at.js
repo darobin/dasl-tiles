@@ -5,11 +5,22 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join, basename, isAbsolute, resolve, normalize } from 'node:path';
 import { AtpAgent } from '@atproto/api';
 import { TID } from "@atproto/common";
+
 import { create, CODEC_RAW, CODEC_DCBOR as CODEC_DRISL, toCidLink, toString } from '@atcute/cid';
 import { encode } from '@atcute/cbor';
 import { detectBufferMime, detectFilenameMime } from 'mime-detect';
 import { fileTypeFromBuffer } from 'file-type';
 import { getSavedIdentifier, saveIdentifier } from './settings.js'
+
+async function resolvePDS (handle) {
+  try {
+    const { did } = await fetch(`https://bsky.social/xrpc/com.atproto.identity.resolveHandle?handle=${encodeURIComponent(handle)}`).then(r => r.json());
+    const url = did.startsWith('did:web:') ? `https://${did.slice(8)}/.well-known/did.json` : `https://plc.directory/${did}`;
+    const didDoc = await fetch(url).then(r => r.json());
+    return didDoc?.service?.find(s => s.id === '#atproto_pds')?.serviceEndpoint ?? 'https://bsky.social';
+  }
+  catch (_) { return 'https://bsky.social'; }
+}
 
 export class TilePublisher extends EventTarget {
   #manifest = { resources: {} };
@@ -27,10 +38,10 @@ export class TilePublisher extends EventTarget {
     else {
       this.#reuseIdentifiers = !!options?.reuseIdentifiers;
     }
-    this.#at = new AtpAgent({ service: 'https://bsky.social' });
   }
   async login (identifier, password) {
     this.#identifier = identifier;
+    this.#at = new AtpAgent({ service: await resolvePDS(identifier) });
     await this.#at.login({ identifier, password });
   }
   // XXX this should also be able to process CAR Tiles
