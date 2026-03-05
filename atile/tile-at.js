@@ -9,6 +9,7 @@ import { create, CODEC_RAW, CODEC_DCBOR as CODEC_DRISL, toCidLink, toString } fr
 import { encode } from '@atcute/cbor';
 import { detectBufferMime, detectFilenameMime } from 'mime-detect';
 import { fileTypeFromBuffer } from 'file-type';
+import TileWriter from '../writer.js';
 import { getSavedIdentifier, saveIdentifier } from './settings.js'
 
 export class TilePublisher extends EventTarget {
@@ -19,7 +20,7 @@ export class TilePublisher extends EventTarget {
   #identifier;
   #reuseIdentifiers = false;
   #tid;
-  constructor (options) {
+  constructor (options = {}) {
     super();
     if (options.tid) {
       this.#tid = options.tid;
@@ -71,8 +72,7 @@ export class TilePublisher extends EventTarget {
       }
     }
   }
-  async publish () {
-    // validate
+  validate() {
     if (!this.#manifest.name) throw new Error('Cannot publish tile without name');
     if (!this.#manifest.icons?.[0]?.src) this.event('warn', { message: 'Tile has no icon' });
     if (!this.#manifest.description) this.event('warn', { message: 'Tile has no description' });
@@ -85,6 +85,9 @@ export class TilePublisher extends EventTarget {
       if (!this.#manifest.resources[shot.src]) throw new Error(`Tile screenshot "${shot.src}" is not in resources`);
     });
     if (!this.#manifest.resources['/']) throw new Error('Tile does not have default "/" resource');
+  }
+  async publish () {
+    this.validate();
 
     // upload all the things
     await Promise.all(
@@ -150,6 +153,14 @@ export class TilePublisher extends EventTarget {
       uri: url,
       success: res.success,
     };
+  }
+  async bundle (out) {
+    const tw = new TileWriter(this.#manifest);
+    Object.keys(this.#manifest.resources).map(async (res) => {
+      tw.addResource(res, { ...this.#manifest.resources[res], src: undefined }, { path: this.#sourceMap[res] });
+    });
+    await tw.write(out);
+    return true;
   }
   event (type, data) {
     const evt = new Event(type);

@@ -90,9 +90,9 @@ This is the tile object produced when a tile is loaded.
 
 ## `atile` tool
 
-The `atile` tool is used to publish tiles on AT proto. Most operations revolve
-around a tile source contained in a directory, with a manifest, that you want
-to publish to AT.
+The `atile` tool is used to publish tiles on AT proto or to bundle them into `.tile` files. Most 
+operations revolve around a tile source contained in a directory, with a manifest, that you want
+to publish to AT or output to file.
 
 ```
 Usage: atile [options] [command]
@@ -110,8 +110,13 @@ Commands:
   list-users                     list all logged in handles you have
   publish [options] <dir>        publish a tile to the Atmosphere
   delete [options] <dirOrATURL>  delete a tile from the Atmosphere
+  bundle <dir> <out.tile>        bundle a tile into a .tile file
   help [command]                 display help for command
 ```
+
+You can always `atile bundle` by giving it a source directory (with resources and manifest)
+and an output file to save to, without logging into AT. This will give you a self-contained
+tile file that can then be read from a tile reader.
 
 In order to publish, you must be logged in. For that, you use the `atile login`
 command, with an app password. Passwords are stored using `keytar`, which should
@@ -173,14 +178,14 @@ tiles-loading-server example.site 8080
 ## Writing
 
 ```js
-import TileWrite from '@dasl/tiles/writer';
+import TileWriter from '@dasl/tiles/writer';
 
 const tw = new TileWriter({
   name: `My Cat`,
   description: `This basic tile is a picture of my cat.`,
 });
-tw.addResource('/', { 'content-type': 'text/html' }, { path: '/path/to/index.html') });
-tw.addResource('/img/kitsu.jpg', { 'content-type': 'image/jpeg' }, { path: '/path/to/rick.jpg') });
+tw.addResource('/', { 'content-type': 'text/html' }, { path: '/path/to/index.html' });
+tw.addResource('/img/kitsu.jpg', { 'content-type': 'image/jpeg' }, { path: '/path/to/rick.jpg' });
 await tw.write('/path/to/output.tile');
 ```
 

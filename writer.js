@@ -70,7 +70,10 @@ export default class TileWriter {
     if (!this.#masl.resources) this.#masl.resources = {};
     path = (new URL(`fake:${path}`)).pathname;
     Object.keys(headers).forEach(k => {
-      if (!supportedHTTPHeaders.has(k)) throw new Error(`Unsupported header '${k}'`);
+      if (!supportedHTTPHeaders.has(k)) {
+        console.warn(`Unsupported header '${k}'`);
+        delete headers[k];
+      }
     });
     this.#masl.resources[path] = { ...headers };
     // this could be multiple things:

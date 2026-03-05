@@ -130,7 +130,38 @@ program
       exit(1);
     }
   })
+  ;
+
+// Bundle into a CAR
+program
+  .command('bundle')
+  .description('bundle a tile into a .tile carball')
+  .argument('<dir>', 'path to a directory that contains a tile and its manifest')
+  .argument('<out>', 'the carball to write to (will be overwritten if it exists)')
+  .action(async (dir, out) => {
+    try {
+      console.warn(chalk.blue(`Bundle tile from "${dir}" to "${out}"`));
+      const tp = new TilePublisher();
+      dir = resolve(cwd(), dir);
+      await tp.loadFromDirectory(dir);
+      console.warn(chalk.blue(`• Loaded content from "${dir}"`));
+      tp.addEventListener('warn', (ev) => console.warn(chalk.yellow.bold(`WARNING: ${ev.message}.`)));
+      const success = await tp.bundle(out);
+      if (success) {
+        console.warn(chalk.green.bold(`Tile bundled: ${out}.`));
+      }
+      else {
+        console.warn(chalk.red(`FAILED to bundle tile.`));
+        exit(1);
+      }
+    }
+    catch (err) {
+      console.error(chalk.red(err, err.stack));
+      exit(1);
+    }
+  })
 ;
+
 
 program.parse();
 
