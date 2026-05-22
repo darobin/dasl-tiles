@@ -5,7 +5,7 @@ import { mkdir, rm } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
 import { Readable } from 'node:stream';
 import { toString as stringifyCID, toCidLink } from '@atcute/cid';
-import { CarReader } from '@atcute/car/v4';
+import { fromStream } from '@atcute/car';
 import TileWriter from "../writer.js";
 import makeRel from "../lib/rel.js";
 import { rickMetaRaw } from './data.js';
@@ -30,7 +30,7 @@ describe('Writing tiles', () => {
     await tw.write(rickTile);
 
     const rs = createReadStream(rickTile);
-    const car = CarReader.fromStream(Readable.toWeb(rs));
+    const car = fromStream(Readable.toWeb(rs));
     const { data: meta } = await car.header();
     Object.keys(meta.resources).forEach(k => {
       meta.resources[k].src = toCidLink(meta.resources[k].src).toJSON();

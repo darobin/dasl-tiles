@@ -1,7 +1,7 @@
 
 import { open } from 'node:fs/promises';
 import { Readable } from 'node:stream';
-import { CarReader } from '@atcute/car/v4';
+import { fromStream } from '@atcute/car';
 import { toCidLink, toString as stringifyCID } from '@atcute/cid';
 
 // XXX IMPORTANT
@@ -20,7 +20,7 @@ export default class CarTileReader {
   }
   async open () {
     this.#fh = await open(this.#path);
-    const car = CarReader.fromStream(Readable.toWeb(this.#fh.createReadStream({ autoClose: false })));
+    const car = fromStream(Readable.toWeb(this.#fh.createReadStream({ autoClose: false })));
     const { data: meta } = await car.header(); // also returns headerEnd if we want to read ourselves
     delete meta.version;
     delete meta.roots;
