@@ -7,7 +7,7 @@ import { AtpAgent } from '@atproto/api';
 import { TID } from "@atproto/common";
 import { create, CODEC_RAW, CODEC_DCBOR as CODEC_DRISL, toCidLink, toString } from '@atcute/cid';
 import { encode } from '@atcute/cbor';
-import { detectBufferMime, detectFilenameMime } from 'mime-detect';
+import { detectFilenameMime } from 'mime-detect';
 import { fileTypeFromBuffer } from 'file-type';
 import TileWriter from '../writer.js';
 import { getSavedIdentifier, saveIdentifier } from './settings.js'
@@ -66,7 +66,7 @@ export class TilePublisher extends EventTarget {
         size: buf.length,
       };
       if (!this.#manifest.resources[res]['content-type']) {
-        let mime = detectFilenameMime(src, await detectBufferMime(buf));
+        let mime = detectFilenameMime(src);
         if (/text\/html\s*;\s*charset=us-ascii/.test(mime)) mime = 'text/html';
         this.#manifest.resources[res]['content-type'] = mime;
       }
