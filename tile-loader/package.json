@@ -1,0 +1,38 @@
+{
+  "name": "@dasl/tile-loader",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Browser architecture for safely loading DASL tiles (mothership, shuttle, worker)",
+  "author": "Robin Berjon <robin@berjon.com>",
+  "license": "Apache-2.0",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./at": "./at.js",
+    "./car": "./car.js",
+    "./memory": "./memory.js",
+    "./content-scheme": "./content-scheme.js",
+    "./webxdc": "./webxdc.js"
+  },
+  "files": [
+    "index.js",
+    "at.js",
+    "car.js",
+    "memory.js",
+    "content-scheme.js",
+    "webxdc.js",
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/darobin/dasl-tiles.git",
+    "directory": "tile-loader"
+  },
+  "dependencies": {
+    "@atcute/car": "^6.0.0",
+    "@atcute/cid": "^2.4.1",
+    "jszip": "^3.10.1",
+    "mime": "^4.1.0",
+    "smol-toml": "^1.6.1"
+  }
+}

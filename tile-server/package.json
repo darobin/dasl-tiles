@@ -1,0 +1,31 @@
+{
+  "name": "@dasl/tile-server",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Minimal Express server that isolates DASL tiles in their own origin for browser loading",
+  "author": "Robin Berjon <robin@berjon.com>",
+  "license": "Apache-2.0",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./server.js": "./server.js"
+  },
+  "bin": {
+    "tiles-loading-server": "server.js"
+  },
+  "files": [
+    "index.js",
+    "server.js",
+    "rel.js",
+    "public"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/darobin/dasl-tiles.git",
+    "directory": "tile-server"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "nanoid": "^5.1.11"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "@dasl/tile-car-reader",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Read DASL tiles from a CAR file, resolving paths to headers and byte ranges",
+  "author": "Robin Berjon <robin@berjon.com>",
+  "license": "Apache-2.0",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/darobin/dasl-tiles.git",
+    "directory": "tile-car-reader"
+  },
+  "dependencies": {
+    "@atcute/car": "^6.0.0",
+    "@atcute/cid": "^2.4.1"
+  },
+  "devDependencies": {
+    "mocha": "^11.7.6"
+  }
+}

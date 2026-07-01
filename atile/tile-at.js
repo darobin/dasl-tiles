@@ -10,7 +10,7 @@ import { create, CODEC_RAW, CODEC_DCBOR as CODEC_DRISL, toCidLink, toString } fr
 import { encode } from '@atcute/cbor';
 import { detectFilenameMime } from 'mime-detect';
 import { fileTypeFromBuffer } from 'file-type';
-import TileWriter from '../writer.js';
+import TileWriter from '@dasl/tile-writer';
 import { getSavedIdentifier, saveIdentifier } from './settings.js'
 
 async function resolvePDS (handle) {

@@ -138,3 +138,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 scratch/
+
+# test output
+tile-writer/test/fixtures/tmp/

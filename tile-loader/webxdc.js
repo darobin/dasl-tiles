@@ -2,7 +2,7 @@
 import JSZip from "jszip";
 import mime from 'mime/lite';
 import { parse } from 'smol-toml';
-import { Tile } from "../loader.js";
+import { Tile } from "./index.js";
 import { ContentSchemeTileLoader } from "./content-scheme.js";
 import { MemoryPathLoader } from './memory.js';
 

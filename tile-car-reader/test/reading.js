@@ -1,13 +1,13 @@
 
 import { deepStrictEqual, equal } from 'node:assert';
 import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import { Buffer } from 'node:buffer';
 import { create, CODEC_RAW, toString as stringifyCID } from '@atcute/cid';
-import CarTileReader from '../car-reader.js';
-import makeRel from "../lib/rel.js";
+import CarTileReader from '../index.js';
 import { rickMeta } from './data.js';
 
-const rel = makeRel(import.meta.url);
+const rel = (pth) => fileURLToPath(new URL(pth, import.meta.url));
 const rickTile = rel('./fixtures/rick.tile');
 
 describe('Reading tiles from CAR', () => {

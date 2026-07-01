@@ -1,7 +1,7 @@
 
 import express from 'express';
 import { customAlphabet } from 'nanoid';
-import makeRel from '../lib/rel.js';
+import makeRel from './rel.js';
 
 const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz', 20);
 const rel = makeRel(import.meta.url);

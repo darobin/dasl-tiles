@@ -7,6 +7,40 @@ ways in non-web contexts such as social, commercial, or agentic protocols.
 
 This library is a toolbox for tiles.
 
+## Packages
+
+This repository is a monorepo. The historical `@dasl/tiles` package is still
+published and keeps its exact interface — every import and CLI command below
+continues to work unchanged — but it is now a thin meta-package that re-exports a
+set of smaller, independent libraries you can depend on directly:
+
+| Package | What it is | Direct import |
+| --- | --- | --- |
+| [`@dasl/tile-loader`](./tile-loader) | Browser architecture for loading tiles (mothership/shuttle/worker) | `@dasl/tile-loader`, `@dasl/tile-loader/at`, `.../car`, `.../memory`, `.../content-scheme`, `.../webxdc` |
+| [`@dasl/tile-writer`](./tile-writer) | Write tiles into CAR-based `.tile` files | `@dasl/tile-writer` |
+| [`@dasl/tile-car-reader`](./tile-car-reader) | Read tiles from a CAR file | `@dasl/tile-car-reader` |
+| [`@dasl/tile-server`](./tile-server) | Minimal Express server for browser tile loading (bin: `tiles-loading-server`) | `@dasl/tile-server` |
+| [`@dasl/atile`](./atile) | CLI to publish/bundle tiles (bin: `atile`) | — |
+| [`@dasl/tile-lexicon`](./tile-lexicon) | AT Protocol lexicon / MASL schema data | `@dasl/tile-lexicon` |
+| [`@dasl/tiles`](./tiles) | Backward-compatible meta-package re-exporting all of the above | `@dasl/tiles/loader`, `@dasl/tiles/writer`, … |
+
+New code can depend on the small packages; existing code using `@dasl/tiles/*`
+keeps working as-is. The mapping is one-to-one:
+
+| Legacy `@dasl/tiles` import | Direct equivalent |
+| --- | --- |
+| `@dasl/tiles/loader` | `@dasl/tile-loader` |
+| `@dasl/tiles/loader/at` (and `car`, `memory`, `content-scheme`, `webxdc`) | `@dasl/tile-loader/at` (etc.) |
+| `@dasl/tiles/writer` | `@dasl/tile-writer` |
+| `@dasl/tiles/car-reader` | `@dasl/tile-car-reader` |
+| `@dasl/tiles/loading-server` | `@dasl/tile-server` |
+
+### Working in the monorepo
+
+The repo uses npm workspaces, with each package in a top-level directory (no
+`packages/` wrapper). Run `npm install` once at the root to link everything, and
+`npm test` to run every package's test suite.
+
 ## Tile Loader
 
 In order to load a tile into a web page you need to use the tile loader with a specific

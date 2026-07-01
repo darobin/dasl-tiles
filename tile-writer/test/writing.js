@@ -3,14 +3,14 @@ import { deepStrictEqual, equal } from 'node:assert';
 import { join } from 'node:path';
 import { mkdir, rm } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { Readable } from 'node:stream';
 import { toString as stringifyCID, toCidLink } from '@atcute/cid';
 import { fromStream } from '@atcute/car';
-import TileWriter from "../writer.js";
-import makeRel from "../lib/rel.js";
+import TileWriter from "../index.js";
 import { rickMetaRaw } from './data.js';
 
-const rel = makeRel(import.meta.url);
+const rel = (pth) => fileURLToPath(new URL(pth, import.meta.url));
 const rickDir = rel('./fixtures/rick');
 const tmpDir = rel('./fixtures/tmp');
 const rickTile = join(tmpDir, 'rick.tile');

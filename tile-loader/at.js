@@ -1,6 +1,6 @@
 
-import { Tile } from "../loader.js";
-import { NOT_FOUND, maslResponse } from "../lib/masl.js";
+import { Tile } from "./index.js";
+import { NOT_FOUND, maslResponse } from "./lib/masl.js";
 
 async function did2pds (did) {
   if (!/^did:plc:/.test(did)) return false; // we should add did:web

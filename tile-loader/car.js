@@ -2,8 +2,8 @@
 import { fromUint8Array } from '@atcute/car';
 import { toCidLink, toString as stringifyCID } from '@atcute/cid';
 import { ContentSchemeTileLoader } from "./content-scheme.js";
-import { Tile } from "../loader.js";
-import { NOT_FOUND, maslResponse } from "../lib/masl.js";
+import { Tile } from "./index.js";
+import { NOT_FOUND, maslResponse } from "./lib/masl.js";
 
 // ### CAR Tiles
 export class CARTileLoader extends ContentSchemeTileLoader {

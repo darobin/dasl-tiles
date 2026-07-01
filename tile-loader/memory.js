@@ -1,6 +1,6 @@
 
-import { Tile } from "../loader.js";
-import { NOT_FOUND, maslResponse } from "../lib/masl.js";
+import { Tile } from "./index.js";
+import { NOT_FOUND, maslResponse } from "./lib/masl.js";
 
 // ### Memory Loader
 // This is mostly for debugging, experimentation.

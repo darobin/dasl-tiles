@@ -14,10 +14,10 @@ import {
   getPassword
 } from "./credentials.js";
 import { TilePublisher } from './tile-at.js';
-import makeRel from '../lib/rel.js';
+import makeRel from './rel.js';
 
 const rel = makeRel(import.meta.url);
-const { version } = JSON.parse(await readFile(rel('../package.json')));
+const { version } = JSON.parse(await readFile(rel('./package.json')));
 
 program
   .name('atile')
