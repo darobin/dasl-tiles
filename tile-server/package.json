@@ -5,6 +5,9 @@
   "description": "Minimal Express server that isolates DASL tiles in their own origin for browser loading",
   "author": "Robin Berjon <robin@berjon.com>",
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "index.js",
   "exports": {
     ".": "./index.js",

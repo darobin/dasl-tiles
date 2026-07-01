@@ -5,6 +5,9 @@
   "description": "CLI to publish DASL tiles to the AT protocol or bundle them into .tile files",
   "author": "Robin Berjon <robin@berjon.com>",
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
     "atile": "atile.js"
   },

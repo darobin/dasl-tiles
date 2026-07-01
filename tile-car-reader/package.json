@@ -5,6 +5,9 @@
   "description": "Read DASL tiles from a CAR file, resolving paths to headers and byte ranges",
   "author": "Robin Berjon <robin@berjon.com>",
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "index.js",
   "exports": {
     ".": "./index.js"

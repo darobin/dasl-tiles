@@ -5,6 +5,9 @@
   "description": "Browser architecture for safely loading DASL tiles (mothership, shuttle, worker)",
   "author": "Robin Berjon <robin@berjon.com>",
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "index.js",
   "exports": {
     ".": "./index.js",

@@ -5,6 +5,9 @@
   "description": "All-purpose web tiles library (meta-package re-exporting the @dasl/tile-* libraries)",
   "author": "Robin Berjon <robin@berjon.com>",
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
     "atile": "bin/atile.js",
     "tiles-loading-server": "bin/tiles-loading-server.js"

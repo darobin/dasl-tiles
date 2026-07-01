@@ -1,0 +1,14 @@
+{
+  "git": {
+    "tagName": "${name}@${version}",
+    "tagAnnotation": "Release ${name}@${version}",
+    "commitMessage": "Release ${name}@${version}",
+    "requireCleanWorkingDir": false
+  },
+  "npm": {
+    "publish": true
+  },
+  "github": {
+    "release": false
+  }
+}
