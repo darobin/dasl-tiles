@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { Readable } from 'node:stream';
 import { toString as stringifyCID, toCidLink } from '@atcute/cid';
 import { fromStream } from '@atcute/car';
-import TileWriter from "../index.js";
+import TileWriter from "../dist/index.js";
 import { rickMetaRaw } from './data.js';
 
 const rel = (pth) => fileURLToPath(new URL(pth, import.meta.url));

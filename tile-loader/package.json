@@ -8,24 +8,48 @@
   "publishConfig": {
     "access": "public"
   },
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
-    ".": "./index.js",
-    "./at": "./at.js",
-    "./car": "./car.js",
-    "./memory": "./memory.js",
-    "./content-scheme": "./content-scheme.js",
-    "./webxdc": "./webxdc.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./at": {
+      "types": "./dist/at.d.ts",
+      "import": "./dist/at.js",
+      "default": "./dist/at.js"
+    },
+    "./car": {
+      "types": "./dist/car.d.ts",
+      "import": "./dist/car.js",
+      "default": "./dist/car.js"
+    },
+    "./memory": {
+      "types": "./dist/memory.d.ts",
+      "import": "./dist/memory.js",
+      "default": "./dist/memory.js"
+    },
+    "./content-scheme": {
+      "types": "./dist/content-scheme.d.ts",
+      "import": "./dist/content-scheme.js",
+      "default": "./dist/content-scheme.js"
+    },
+    "./webxdc": {
+      "types": "./dist/webxdc.d.ts",
+      "import": "./dist/webxdc.js",
+      "default": "./dist/webxdc.js"
+    }
   },
   "files": [
-    "index.js",
-    "at.js",
-    "car.js",
-    "memory.js",
-    "content-scheme.js",
-    "webxdc.js",
-    "lib"
+    "dist",
+    "src"
   ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/darobin/dasl-tiles.git",
@@ -34,6 +58,7 @@
   "dependencies": {
     "@atcute/car": "^6.0.0",
     "@atcute/cid": "^2.4.1",
+    "@dasl/tile-lexicon": "^1.0.0",
     "jszip": "^3.10.1",
     "mime": "^4.1.0",
     "smol-toml": "^1.6.1"

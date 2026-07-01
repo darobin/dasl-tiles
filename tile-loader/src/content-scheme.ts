@@ -1,13 +1,15 @@
 
+import type { Tile, TileMothership } from "./index.js";
+
 // ### Base Class for HTTP, file, etc. loaders
 // Here the idea is that you can load from multiple schemes, but you might not
 // want to.
-export class ContentSchemeTileLoader {
-  #schemes;
-  constructor (schemes = ['http', 'file']) {
+export abstract class ContentSchemeTileLoader {
+  #schemes: Set<string>;
+  constructor (schemes: string[] = ['http', 'file']) {
     this.#schemes = new Set(schemes);
   }
-  async load (url, mothership) {
+  async load (url: string, mothership: TileMothership): Promise<Tile | false | undefined> {
     const u = new URL(url);
     if (u.protocol === 'https:' || u.protocol === 'http:') {
       if (!this.#schemes.has('http')) return false;
@@ -21,5 +23,7 @@ export class ContentSchemeTileLoader {
       //  - get the data
       //  - give it to processContent
     }
+    return undefined;
   }
+  abstract processContent (data: ArrayBuffer, scheme: string, url: string, mothership: TileMothership): Promise<Tile | false>;
 }

@@ -1,5 +1,7 @@
 
-export const NOT_FOUND = { ok: false, status: 404, statusText: 'Not found' };
+import type { MaslHeaders, MaslResponse, MaslResponseError } from '@dasl/tile-lexicon';
+
+export const NOT_FOUND: MaslResponseError = { ok: false, status: 404, statusText: 'Not found' };
 
 export const maslHeaders = [
   'content-disposition',
@@ -15,11 +17,11 @@ export const maslHeaders = [
   'speculation-rules',
   'supports-loading-mode',
   'x-content-type-options',
-];
+] as const;
 
-export function maslResponse (masl, body) {
+export function maslResponse (masl: MaslHeaders, body: ArrayBuffer | Uint8Array | string | null | undefined): MaslResponse {
   if (!body) return NOT_FOUND;
-  const headers = {};
+  const headers: MaslHeaders = {};
   maslHeaders.forEach(k => {
     if (typeof masl[k] !== 'undefined') headers[k] = masl[k];
   });

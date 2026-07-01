@@ -6,17 +6,19 @@
   "author": "Robin Berjon <robin@berjon.com>",
   "license": "Apache-2.0",
   "workspaces": [
-    "tile-loader",
+    "tile-lexicon",
     "tile-writer",
     "tile-car-reader",
-    "tile-lexicon",
-    "atile",
+    "tile-loader",
     "tile-server",
+    "atile",
     "tiles"
   ],
   "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "pretest": "npm run build",
     "test": "npm test --workspaces --if-present",
-    "watch": "node --watch tile-server/server.js webtiles.bast",
+    "watch": "node --watch tile-server/dist/server.js webtiles.bast",
     "release": "node scripts/release.mjs"
   },
   "repository": {
@@ -38,9 +40,11 @@
     "rules": {}
   },
   "devDependencies": {
+    "@types/node": "^22.10.2",
     "eslint": "^10.4.0",
     "http-server": "^14.1.1",
     "mocha": "^11.7.6",
-    "release-it": "^20.2.1"
+    "release-it": "^20.2.1",
+    "typescript": "^5.7.2"
   }
 }

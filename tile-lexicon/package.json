@@ -2,19 +2,29 @@
   "name": "@dasl/tile-lexicon",
   "type": "module",
   "version": "1.0.0",
-  "description": "AT Protocol lexicon and MASL schema definitions for DASL tiles",
+  "description": "AT Protocol lexicon, MASL schema, and shared TypeScript types for DASL tiles",
   "author": "Robin Berjon <robin@berjon.com>",
   "license": "Apache-2.0",
   "publishConfig": {
     "access": "public"
   },
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
-    ".": "./index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
   },
   "files": [
-    "index.js"
+    "dist",
+    "src"
   ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/darobin/dasl-tiles.git",

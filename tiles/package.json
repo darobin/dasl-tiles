@@ -9,24 +9,64 @@
     "access": "public"
   },
   "bin": {
-    "atile": "bin/atile.js",
-    "tiles-loading-server": "bin/tiles-loading-server.js"
+    "atile": "dist/bin/atile.js",
+    "tiles-loading-server": "dist/bin/tiles-loading-server.js"
   },
   "exports": {
-    "./loading-server": "./compat/loading-server.js",
-    "./loader": "./compat/loader.js",
-    "./loader/memory": "./compat/loader-memory.js",
-    "./loader/at": "./compat/loader-at.js",
-    "./loader/content-scheme": "./compat/loader-content-scheme.js",
-    "./loader/car": "./compat/loader-car.js",
-    "./loader/webxdc": "./compat/loader-webxdc.js",
-    "./car-reader": "./compat/car-reader.js",
-    "./writer": "./compat/writer.js"
+    "./loading-server": {
+      "types": "./dist/compat/loading-server.d.ts",
+      "import": "./dist/compat/loading-server.js",
+      "default": "./dist/compat/loading-server.js"
+    },
+    "./loader": {
+      "types": "./dist/compat/loader.d.ts",
+      "import": "./dist/compat/loader.js",
+      "default": "./dist/compat/loader.js"
+    },
+    "./loader/memory": {
+      "types": "./dist/compat/loader-memory.d.ts",
+      "import": "./dist/compat/loader-memory.js",
+      "default": "./dist/compat/loader-memory.js"
+    },
+    "./loader/at": {
+      "types": "./dist/compat/loader-at.d.ts",
+      "import": "./dist/compat/loader-at.js",
+      "default": "./dist/compat/loader-at.js"
+    },
+    "./loader/content-scheme": {
+      "types": "./dist/compat/loader-content-scheme.d.ts",
+      "import": "./dist/compat/loader-content-scheme.js",
+      "default": "./dist/compat/loader-content-scheme.js"
+    },
+    "./loader/car": {
+      "types": "./dist/compat/loader-car.d.ts",
+      "import": "./dist/compat/loader-car.js",
+      "default": "./dist/compat/loader-car.js"
+    },
+    "./loader/webxdc": {
+      "types": "./dist/compat/loader-webxdc.d.ts",
+      "import": "./dist/compat/loader-webxdc.js",
+      "default": "./dist/compat/loader-webxdc.js"
+    },
+    "./car-reader": {
+      "types": "./dist/compat/car-reader.d.ts",
+      "import": "./dist/compat/car-reader.js",
+      "default": "./dist/compat/car-reader.js"
+    },
+    "./writer": {
+      "types": "./dist/compat/writer.d.ts",
+      "import": "./dist/compat/writer.js",
+      "default": "./dist/compat/writer.js"
+    }
   },
   "files": [
-    "compat",
-    "bin"
+    "dist",
+    "src"
   ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/darobin/dasl-tiles.git",

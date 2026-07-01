@@ -1,5 +1,7 @@
 
 import express from 'express';
+import type { Request, Response, NextFunction } from 'express';
+import type { ServerResponse } from 'node:http';
 import { customAlphabet } from 'nanoid';
 import makeRel from './rel.js';
 
@@ -8,10 +10,10 @@ const rel = makeRel(import.meta.url);
 
 // The baseHost is the host under which the subdomains for loading will be
 // created. Lowercase, no leading dot.
-export function createTileLoadingRouter (baseHost) {
+export function createTileLoadingRouter (baseHost: string) {
   const router = express.Router();
   baseHost = baseHost.toLowerCase().replace(/^\./, '');
-  router.use((req, res, next) => {
+  router.use((req: Request, res: Response, next: NextFunction) => {
     if (req.hostname === `load.${baseHost}`) {
       const host = `${nanoid()}.${baseHost}`;
       res.redirect(303, `${req.protocol}://${host}${req.originalUrl || '/'}`);
@@ -19,9 +21,9 @@ export function createTileLoadingRouter (baseHost) {
     }
     next();
   });
-  router.use('/.well-known/web-tiles/', express.static(rel('./public'), {
-    setHeaders (res) {
-      res.set({
+  router.use('/.well-known/web-tiles/', express.static(rel('../public'), {
+    setHeaders (res: ServerResponse) {
+      (res as unknown as Response).set({
         'service-worker-allowed': '/',
         'origin-agent-cluster': '?1',
         'referrer-policy': 'no-referrer',

@@ -9,15 +9,16 @@
     "access": "public"
   },
   "bin": {
-    "atile": "atile.js"
+    "atile": "dist/atile.js"
   },
   "files": [
-    "atile.js",
-    "tile-at.js",
-    "credentials.js",
-    "settings.js",
-    "rel.js"
+    "dist",
+    "src"
   ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/darobin/dasl-tiles.git",
@@ -28,6 +29,7 @@
     "@atcute/cid": "^2.4.1",
     "@atproto/api": "^0.20.4",
     "@atproto/common": "^0.6.1",
+    "@dasl/tile-lexicon": "^1.0.0",
     "@dasl/tile-writer": "^1.0.0",
     "chalk": "^5.6.2",
     "commander": "^14.0.3",

@@ -3,8 +3,10 @@ import JSZip from "jszip";
 import mime from 'mime/lite';
 import { parse } from 'smol-toml';
 import { Tile } from "./index.js";
+import type { TileMothership } from "./index.js";
 import { ContentSchemeTileLoader } from "./content-scheme.js";
 import { MemoryPathLoader } from './memory.js';
+import type { InMemoryMasl } from "@dasl/tile-lexicon";
 
 // ### WebXDC (DeltaChat) Loader
 // WebXDC works this way:
@@ -14,10 +16,10 @@ import { MemoryPathLoader } from './memory.js';
 //  - It may have a manifest.toml (seriously), that may have a name entry and
 //    one pointing to the source.
 export class WebXDCTileLoader extends ContentSchemeTileLoader {
-  constructor (schemes) {
+  constructor (schemes?: string[]) {
     super(schemes);
   }
-  async processContent(zipData, _, url, mothership) {
+  async processContent (zipData: ArrayBuffer, _: string, url: string, mothership: TileMothership): Promise<Tile | false> {
     const zip = new JSZip();
     try {
       await zip.loadAsync(zipData);
@@ -25,7 +27,7 @@ export class WebXDCTileLoader extends ContentSchemeTileLoader {
     catch (e) {
       return false;
     }
-    const manifest = {
+    const manifest: InMemoryMasl = {
       resources: {},
     };
     // We could extract a description from index.html
@@ -37,13 +39,13 @@ export class WebXDCTileLoader extends ContentSchemeTileLoader {
         manifest.icons.push({ src: keyPath });
       }
       else if (path === 'manifest.toml') {
-        const toml = parse(await zip.file(path).async('text'));
-        manifest.name = toml.name;
+        const toml = parse(await zip.files[path].async('text'));
+        manifest.name = (toml as { name?: string }).name;
       }
       const mediaType = mime.getType(path);
       manifest.resources[keyPath] = {
         src: await zip.files[path].async('arraybuffer'),
-        'content-type': mediaType,
+        'content-type': mediaType || undefined,
       };
     }
     // Add webxdc.js. NOTE: we need to make this pluggable so that it can actually
@@ -60,7 +62,7 @@ export class WebXDCTileLoader extends ContentSchemeTileLoader {
 // This is the resource that implements webxdc.js. (Based on webxdc/hello.)
 // Note that joinRealtimeChannel() is marked as optional, so we skip it.
 // These are mostly stubs, e.g. sendToChat() just dumps to the console.
-function makeWebXDCAPI ({ selfName = 'Dazzling Kitten', selfAddr } = {}) {
+function makeWebXDCAPI ({ selfName = 'Dazzling Kitten', selfAddr }: { selfName?: string; selfAddr?: string } = {}): string {
   return [
     // self-func
     `window.webxdc = (() => {`,

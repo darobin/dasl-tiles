@@ -35,11 +35,19 @@ keeps working as-is. The mapping is one-to-one:
 | `@dasl/tiles/car-reader` | `@dasl/tile-car-reader` |
 | `@dasl/tiles/loading-server` | `@dasl/tile-server` |
 
+All packages are written in TypeScript and published with compiled JavaScript
+plus type declarations. JavaScript consumers import exactly as before; TypeScript
+consumers get full type hints automatically (including the shared `Masl`,
+`ResourceEntry`, and `MaslResponse` types from `@dasl/tile-lexicon`). No import
+paths change.
+
 ### Working in the monorepo
 
 The repo uses npm workspaces, with each package in a top-level directory (no
-`packages/` wrapper). Run `npm install` once at the root to link everything, and
-`npm test` to run every package's test suite.
+`packages/` wrapper). Sources live in each package's `src/*.ts` and compile to
+`dist/` (`.js` + `.d.ts`). Run `npm install` once at the root to link everything,
+`npm run build` to compile all packages (in dependency order), and `npm test` to
+build then run every package's test suite.
 
 ## Tile Loader
 

@@ -29,6 +29,14 @@ The tile-loading architecture has three levels that all communicate together:
 */
 
 import { el } from "./lib/el.js";
+import type { AnyMasl, MaslResponse } from "@dasl/tile-lexicon";
+
+export interface TileLoader {
+  load (url: string, mothership: TileMothership): Promise<Tile | false | undefined>;
+}
+export interface TilePathLoader {
+  resolvePath (path: string): Promise<MaslResponse>;
+}
 
 const TILES_PFX = 'tiles-';
 const SHUTTLE_PFX = 'tiles-shuttle-';
@@ -45,15 +53,15 @@ const TILES_WARNING = `${TILES_PFX}warn`;             // worker warnings
 const TILES_ERROR = `${TILES_PFX}error`;              // shuttle errors
 
 export class TileMothership {
-  #loaders = [];
-  #conf = {};
-  #id2shuttle = new Map();
-  #id2tile = new Map();
-  constructor (conf) {
+  #loaders: TileLoader[] = [];
+  #conf: { loadDomain?: string };
+  #id2shuttle = new Map<string, HTMLIFrameElement>();
+  #id2tile = new Map<string, Tile>();
+  constructor (conf: { loadDomain?: string } = {}) {
     this.#conf = conf;
   }
   init () {
-    window.addEventListener('message', async (ev) => {
+    window.addEventListener('message', async (ev: MessageEvent) => {
       const { action } = ev.data || {};
       if (action === TILES_WARNING) {
         const { msg, id } = ev.data;
@@ -79,57 +87,59 @@ export class TileMothership {
           const { path, requestId } = payload;
           const tile = this.#id2tile.get(id);
           if (!tile) throw new Error(`No tile shuttle with ID ${id}`);
-          const { status, headers, body } = await tile.resolvePath(path);
-          this.sendToShuttle(id, SND_WORKER_RESPONSE, { requestId, response: { status, headers, body } });
+          const res = await tile.resolvePath(path);
+          const response = res.ok
+            ? { status: res.status, headers: res.headers, body: res.body }
+            : { status: res.status, headers: undefined, body: undefined };
+          this.sendToShuttle(id, SND_WORKER_RESPONSE, { requestId, response });
         }
       }
     });
   }
-  sendToShuttle (id, action, payload) {
+  sendToShuttle (id: string, action: string, payload: unknown) {
     const ifr = this.#id2shuttle.get(id);
     if (!ifr) return console.error(`No shuttle for ID ${id}`);
-    ifr.contentWindow.postMessage({ id, action, payload }, '*');
+    ifr.contentWindow?.postMessage({ id, action, payload }, '*');
   }
-  registerShuttleFrame (ifr, tile) {
+  registerShuttleFrame (ifr: HTMLIFrameElement, tile: Tile) {
     const id = crypto.randomUUID(); // we might want to make that pluggable
     this.#id2shuttle.set(id, ifr);
     this.#id2tile.set(id, tile);
     return id;
   }
-  startShuttle (id) {
+  startShuttle (id: string) {
     this.sendToShuttle(id, SND_SHUTTLE_LOAD, { id });
   }
   // Adds a loader that will handle matching requests to load a tile.
   // - `loader` is an object that knows how to load a tile for a specific scheme
   //    (and types)
-  addLoader (loader) {
+  addLoader (loader: TileLoader) {
     this.#loaders.push(loader);
   }
   // Remove using same reference.
-  removeLoader (loader) {
+  removeLoader (loader: TileLoader) {
     this.#loaders = this.#loaders.filter(ldr => ldr !== loader);
   }
   getLoadSource () {
     return `https://${this.#conf?.loadDomain || 'load.webtil.es'}/.well-known/web-tiles/`;
   }
   // Load a tile.
-  async loadTile (url) {
-    let tile = false;
+  async loadTile (url: string): Promise<Tile | false> {
     for (const ldr of this.#loaders) {
-      tile = await ldr.load(url, this);
-      if (tile) break;
+      const tile = await ldr.load(url, this);
+      if (tile) return tile;
     }
-    return tile;
+    return false;
   }
 }
 
 export class Tile extends EventTarget {
-  #mothership;
-  #url;
-  #manifest;
-  #pathLoader;
-  #shuttleId;
-  constructor (mothership, url, manifest, pathLoader) {
+  #mothership: TileMothership;
+  #url: string;
+  #manifest: AnyMasl;
+  #pathLoader: TilePathLoader;
+  #shuttleId: string | undefined;
+  constructor (mothership: TileMothership, url: string, manifest: AnyMasl, pathLoader: TilePathLoader) {
     super();
     this.#mothership = mothership;
     this.#url = url;
@@ -138,28 +148,28 @@ export class Tile extends EventTarget {
     this.addEventListener('load', () => {
       if (this.#manifest?.name) {
         const title = this.#manifest?.name;
-        this.#mothership.sendToShuttle(this.#shuttleId, SND_SET_TITLE, { title });
-        const ev = new Event('title-change');
+        this.#mothership.sendToShuttle(this.#shuttleId!, SND_SET_TITLE, { title });
+        const ev = new Event('title-change') as Event & { title?: string };
         ev.title = title;
         this.dispatchEvent(ev);
       }
       const icon = this.#manifest?.icons?.[0]?.src;
       if (icon) {
-        this.#mothership.sendToShuttle(this.#shuttleId, SND_SET_ICON, { path: icon });
+        this.#mothership.sendToShuttle(this.#shuttleId!, SND_SET_ICON, { path: icon });
       }
     });
   }
-  get url () {
+  get url (): string {
     return this.#url;
   }
-  get manifest () {
+  get manifest (): AnyMasl {
     return this.#manifest;
   }
-  async resolvePath (path) {
+  async resolvePath (path: string): Promise<MaslResponse> {
     const u = new URL(`fake:${path}`);
     return this.#pathLoader.resolvePath(u.pathname);
   }
-  async renderCard (options) {
+  async renderCard (options?: { contentHeight?: number }): Promise<HTMLElement> {
     const card = el('div', { style: {
       border: '1px solid lightgrey',
       'border-radius': '3px',
@@ -177,7 +187,7 @@ export class Tile extends EventTarget {
     if (this.#manifest?.screenshots?.[0]?.src) {
       const res = await this.resolvePath(this.#manifest.screenshots[0].src);
       if (res.ok) {
-        const blob = new Blob([res.body], { type: res.headers?.['content-type'] });
+        const blob = new Blob([res.body as BlobPart], { type: res.headers?.['content-type'] });
         const url = URL.createObjectURL(blob);
         el('div', { style: {
           'background-image': `url(${url})`,
@@ -196,7 +206,7 @@ export class Tile extends EventTarget {
     if (this.#manifest?.icons?.[0]?.src) {
       const res = await this.resolvePath(this.#manifest.icons[0].src);
       if (res.ok) {
-        const blob = new Blob([res.body], { type: res.headers?.['content-type'] });
+        const blob = new Blob([res.body as BlobPart], { type: res.headers?.['content-type'] });
         const url = URL.createObjectURL(blob);
         el('img', { src: url, width: '48', height: '48', alt: 'icon', style: { 'padding-right': '0.5rem' } }, [], title);
       }
@@ -207,14 +217,14 @@ export class Tile extends EventTarget {
     }
     return card;
   }
-  getLoadSource () {
+  getLoadSource (): string {
     return this.#mothership.getLoadSource();
   }
-  attachIframe (ifr) {
+  attachIframe (ifr: HTMLIFrameElement) {
     this.#shuttleId = this.#mothership.registerShuttleFrame(ifr, this);
-    ifr.addEventListener('load', () => this.#mothership.startShuttle(this.#shuttleId));
+    ifr.addEventListener('load', () => this.#mothership.startShuttle(this.#shuttleId!));
   }
-  renderContent (height = 300) {
+  renderContent (height = 300): HTMLIFrameElement {
     const ifr = el('iframe', {
       src: this.#mothership.getLoadSource(),
       style: {
@@ -223,7 +233,7 @@ export class Tile extends EventTarget {
         height: `${height}px`,
         border: 'none',
       }
-    });
+    }) as HTMLIFrameElement;
     this.attachIframe(ifr);
     return ifr;
   }

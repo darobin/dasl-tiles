@@ -8,20 +8,31 @@
   "publishConfig": {
     "access": "public"
   },
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
-    ".": "./index.js",
-    "./server.js": "./server.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./server.js": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    }
   },
   "bin": {
-    "tiles-loading-server": "server.js"
+    "tiles-loading-server": "dist/server.js"
   },
   "files": [
-    "index.js",
-    "server.js",
-    "rel.js",
+    "dist",
+    "src",
     "public"
   ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/darobin/dasl-tiles.git",
@@ -30,5 +41,8 @@
   "dependencies": {
     "express": "^5.2.1",
     "nanoid": "^5.1.11"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0"
   }
 }

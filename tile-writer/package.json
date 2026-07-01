@@ -8,14 +8,22 @@
   "publishConfig": {
     "access": "public"
   },
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
-    ".": "./index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
   },
   "files": [
-    "index.js"
+    "dist",
+    "src"
   ],
   "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
     "test": "mocha"
   },
   "repository": {
@@ -27,6 +35,7 @@
     "@atcute/cbor": "^2.3.3",
     "@atcute/cid": "^2.4.1",
     "@atcute/varint": "^2.0.0",
+    "@dasl/tile-lexicon": "^1.0.0",
     "tmp-promise": "^3.0.3"
   },
   "devDependencies": {
