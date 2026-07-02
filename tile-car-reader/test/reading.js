@@ -1,5 +1,5 @@
 
-import { deepStrictEqual, equal } from 'node:assert';
+import { deepStrictEqual, equal, ok } from 'node:assert';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { Buffer } from 'node:buffer';
@@ -42,6 +42,39 @@ describe('Reading tiles from CAR', () => {
     const buf = await slurpBuffer(imgStream);
     const cid = await create(CODEC_RAW, buf);
     equal(stringifyCID(cid), ctr.meta.resources['/img/rick.jpg'].src.$link, 'CID matches image');
+    ctr.close();
+  });
+
+  it('strips CAR bookkeeping (version/roots) from the exposed metadata', async () => {
+    const ctr = new CarTileReader(rickTile);
+    await ctr.open();
+    ok(!('version' in ctr.meta), 'no version key');
+    ok(!('roots' in ctr.meta), 'no roots key');
+    ctr.close();
+  });
+
+  it('returns a not-found shape (no stream) for missing paths', async () => {
+    const ctr = new CarTileReader(rickTile);
+    await ctr.open();
+    const nf = ctr.resolvePath('/img');
+    equal(nf.ok, false);
+    equal(nf.statusText, 'Not found');
+    ok(!('createReadStream' in nf), 'no stream handed out for a miss');
+    ctr.close();
+  });
+
+  it('normalizes query strings and hashes before matching', async () => {
+    const ctr = new CarTileReader(rickTile);
+    await ctr.open();
+    equal(ctr.resolvePath('/img/rick.jpg?v=2').ok, true, 'query string ignored');
+    equal(ctr.resolvePath('/img/rick.jpg#frag').ok, true, 'hash ignored');
+    ctr.close();
+  });
+
+  it('can be closed more than once without throwing', async () => {
+    const ctr = new CarTileReader(rickTile);
+    await ctr.open();
+    ctr.close();
     ctr.close();
   });
 });

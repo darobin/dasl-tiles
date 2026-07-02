@@ -23,11 +23,15 @@
   ],
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/darobin/dasl-tiles.git",
     "directory": "tile-lexicon"
+  },
+  "devDependencies": {
+    "mocha": "^11.7.6"
   }
 }

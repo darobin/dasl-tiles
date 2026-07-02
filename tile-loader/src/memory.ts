@@ -14,7 +14,9 @@ export class MemoryTileLoader {
     this.#tiles[id] = manifest;
   }
   async load (url: string, mothership: TileMothership): Promise<Tile | false> {
-    const u = new URL(url);
+    let u: URL;
+    try { u = new URL(url); }
+    catch { return false; } // not a URL we understand; let another loader try
     if (u.protocol !== 'memory:') return false;
     const id = u.hostname;
     if (!this.#tiles[id]) return false; // XXX an error would be better

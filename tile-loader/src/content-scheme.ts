@@ -10,7 +10,9 @@ export abstract class ContentSchemeTileLoader {
     this.#schemes = new Set(schemes);
   }
   async load (url: string, mothership: TileMothership): Promise<Tile | false | undefined> {
-    const u = new URL(url);
+    let u: URL;
+    try { u = new URL(url); }
+    catch { return false; } // not a URL we understand; let another loader try
     if (u.protocol === 'https:' || u.protocol === 'http:') {
       if (!this.#schemes.has('http')) return false;
       const res = await fetch(url);
