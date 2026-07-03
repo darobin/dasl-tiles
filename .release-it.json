@@ -1,8 +1,8 @@
 {
   "git": {
-    "tagName": "${name}@${version}",
-    "tagAnnotation": "Release ${name}@${version}",
-    "commitMessage": "Release ${name}@${version}",
+    "tagName": "${npm.name}@${version}",
+    "tagAnnotation": "Release ${npm.name}@${version}",
+    "commit": false,
     "requireCleanWorkingDir": false
   },
   "npm": {
