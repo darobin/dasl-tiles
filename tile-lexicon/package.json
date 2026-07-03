@@ -1,7 +1,7 @@
 {
   "name": "@dasl/tile-lexicon",
   "type": "module",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "AT Protocol lexicon, MASL schema, and shared TypeScript types for DASL tiles",
   "author": "Robin Berjon <robin@berjon.com>",
   "license": "Apache-2.0",

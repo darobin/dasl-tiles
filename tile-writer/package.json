@@ -1,7 +1,7 @@
 {
   "name": "@dasl/tile-writer",
   "type": "module",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Write DASL tiles into CAR-based .tile files",
   "author": "Robin Berjon <robin@berjon.com>",
   "license": "Apache-2.0",
@@ -35,12 +35,12 @@
     "@atcute/cbor": "^2.3.3",
     "@atcute/cid": "^2.4.1",
     "@atcute/varint": "^2.0.0",
-    "@dasl/tile-lexicon": "^1.0.0",
+    "@dasl/tile-lexicon": "^2.0.0",
     "tmp-promise": "^3.0.3"
   },
   "devDependencies": {
     "@atcute/car": "^6.0.0",
-    "@dasl/tile-car-reader": "^1.0.0",
+    "@dasl/tile-car-reader": "^2.0.0",
     "mocha": "^11.7.6"
   }
 }

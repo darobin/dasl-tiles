@@ -1,7 +1,7 @@
 {
   "name": "@dasl/tiles",
   "type": "module",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "description": "All-purpose web tiles library (meta-package re-exporting the @dasl/tile-* libraries)",
   "author": "Robin Berjon <robin@berjon.com>",
   "license": "Apache-2.0",
@@ -73,10 +73,10 @@
     "directory": "tiles"
   },
   "dependencies": {
-    "@dasl/atile": "^1.0.0",
-    "@dasl/tile-car-reader": "^1.0.0",
-    "@dasl/tile-loader": "^1.0.0",
-    "@dasl/tile-server": "^1.0.0",
-    "@dasl/tile-writer": "^1.0.0"
+    "@dasl/atile": "^2.0.0",
+    "@dasl/tile-car-reader": "^2.0.0",
+    "@dasl/tile-loader": "^2.0.0",
+    "@dasl/tile-server": "^2.0.0",
+    "@dasl/tile-writer": "^2.0.0"
   }
 }

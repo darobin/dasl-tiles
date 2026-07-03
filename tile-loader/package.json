@@ -1,7 +1,7 @@
 {
   "name": "@dasl/tile-loader",
   "type": "module",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Browser architecture for safely loading DASL tiles (mothership, shuttle, worker)",
   "author": "Robin Berjon <robin@berjon.com>",
   "license": "Apache-2.0",
@@ -64,7 +64,7 @@
   "dependencies": {
     "@atcute/car": "^6.0.0",
     "@atcute/cid": "^2.4.1",
-    "@dasl/tile-lexicon": "^1.0.0",
+    "@dasl/tile-lexicon": "^2.0.0",
     "jszip": "^3.10.1",
     "mime": "^4.1.0",
     "smol-toml": "^1.6.1"
