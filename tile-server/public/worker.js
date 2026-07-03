@@ -82,24 +82,32 @@ self.addEventListener('message', async (ev) => {
   }
 });
 
-self.addEventListener('fetch', async (ev) => {
+self.addEventListener('fetch', (ev) => {
   const url = new URL(ev.request.url);
   // IMPORTANT
   // We have to let this through since we do need to load the loader. But it means that tiles
   // can themselves load anything in loader space.
   if (/^\/\.well-known\/web-tiles\//.test(url.pathname)) return;
-  await readyToLoad;
-  if (!id) return ev.respondWith(new Response('Not in a loaded state.', response()));
-  // IMPORTANT: Here we have to be careful not to have a nested await (of a fetch at least).
-  const { promise, resolve, reject } = Promise.withResolvers();
+  // A Service Worker MUST call respondWith() synchronously, while the fetch event
+  // is still being dispatched. So we register the response promise *first*, then do
+  // all of the waiting inside it: first for the load handshake (readyToLoad), then
+  // for the mothership round-trip. Awaiting *before* respondWith() used to lose a
+  // race with the handshake and let the navigation fall through to the network,
+  // which the loading server answers with "Cannot GET /".
+  const { promise, resolve } = Promise.withResolvers();
   ev.respondWith(promise);
-  try {
-    const r = await request('resolve-path', { path: url.pathname }); // XXX this may be a nested await, delete this comment if it works
-    resolve(new Response(bodify(r.body), response(r.status, r.headers)));
-  }
-  catch (err) {
-    reject(err); // XXX should get the error message out of this
-  }
+  (async () => {
+    await readyToLoad;
+    if (!id) return resolve(new Response('Not in a loaded state.', response()));
+    try {
+      const r = await request('resolve-path', { path: url.pathname });
+      resolve(new Response(bodify(r.body), response(r.status, r.headers)));
+    }
+    catch (err) {
+      // Resolve (not reject) so the browser doesn't turn this into a network error.
+      resolve(new Response(String(err?.message ?? err), response(502)));
+    }
+  })();
 });
 
 function response (status = 200, headers = { 'content-type': 'text/plain' }) {

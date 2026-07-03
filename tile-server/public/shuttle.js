@@ -100,15 +100,10 @@ async function loadWorker () {
 }
 
 function renderWorkerFrame () {
-  setTimeout(
-    () => {
-      const ifr = document.createElement('iframe');
-      ifr.setAttribute('src', '/');
-      ifr.setAttribute('frameborder', '0'); // oh hell yeah
-      document.body.appendChild(ifr);
-    },
-    5 // setting this to 0 surfaces a race condition… (probably still there)
-  );
+  const ifr = document.createElement('iframe');
+  ifr.setAttribute('src', '/');
+  ifr.setAttribute('frameborder', '0'); // oh hell yeah
+  document.body.appendChild(ifr);
 }
 
 async function error (...msg) {
