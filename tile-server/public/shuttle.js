@@ -17,9 +17,13 @@ Other than that, it passes messages between the worker and the mothership.
 let workerId;   // keep track of the worker id so the mothership knows who we are when we talk
 let mothership; // hold on to the source so we can initiate sending up
 let worker;     // instance of the worker
+let iframe;     // instance of the iframe
 const { promise: readyToLoad, resolve: resolveReadyToLoad } = Promise.withResolvers();
+const { promise: iframeLoaded, resolve: resolveIframeLoaded } = Promise.withResolvers();
 
 const PFX = 'tiles-shuttle-';
+const PFX_PROTOCOL_TO_HOST = 'tiles-protocol-up-';
+const PFX_PROTOCOL_TO_TILE = 'tiles-protocol-down-';
 const RCV_LOAD = `${PFX}load`;            // mothership tells us to start loading
 const SND_READY = `${PFX}ready`;          // tell mothership we're loaded and ready
 const SND_ERROR = `${PFX}error`;          // error to mothership
@@ -68,6 +72,13 @@ window.addEventListener('message', async (ev) => {
       }
     }
   }
+  else if (action?.startsWith(PFX_PROTOCOL_TO_HOST)) {
+    window.parent.postMessage(ev.data, '*');
+  }
+  else if (action?.startsWith(PFX_PROTOCOL_TO_TILE)) {
+    await iframeLoaded;
+    iframe.contentWindow.postMessage(ev.data, '*');
+  }
   else {
     await readyToLoad;
     worker.postMessage(ev.data);
@@ -103,6 +114,8 @@ function renderWorkerFrame () {
   const ifr = document.createElement('iframe');
   ifr.setAttribute('src', '/');
   ifr.setAttribute('frameborder', '0'); // oh hell yeah
+  iframe = ifr;
+  ifr.addEventListener('load', resolveIframeLoaded);
   document.body.appendChild(ifr);
 }
 
